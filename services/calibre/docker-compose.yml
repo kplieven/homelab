@@ -1,0 +1,45 @@
+services:
+  calibre:
+    image: lscr.io/linuxserver/calibre:latest
+    container_name: calibre
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Brussels
+      - DOCKER_MODS=linuxserver/mods:universal-package-install
+    volumes:
+      - './calibre/config:/config'
+      - '${PATH_TO_DATA}:/data'
+    ports:
+      - '${CALIBRE_GUI_PORT:-8183}:8080'
+      - '${CALIBRE_GUI_HTTPS_PORT:-8182}:8181'
+      - '${CALIBRE_WEBSERVER_PORT:-8184}:8081'
+    labels:
+      - homepage.group=Books
+      - homepage.name=Calibre
+      - homepage.icon=calibre
+      - homepage.href=${CALIBRE_HOMEPAGE_URL}
+    restart: unless-stopped
+  calibre-web:
+    image: lscr.io/linuxserver/calibre-web:latest
+    container_name: calibre-web
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Brussels
+      - DOCKER_MODS=linuxserver/mods:universal-calibre
+    volumes:
+      - './calibre-web/config:/config'
+      - '${PATH_TO_DATA}:/data'
+    ports:
+      - '${CALIBRE_WEB_PORT:-8083}:8083'
+    labels:
+      - homepage.group=Books
+      - homepage.name=Calibre Web
+      - homepage.icon=calibre-web
+      - homepage.href=${CALIBRE_WEB_HOMEPAGE_URL}
+      - homepage.widget.type=calibreweb
+      - homepage.widget.url=${CALIBRE_WEB_HOMEPAGE_URL}
+      - homepage.widget.username=${CALIBRE_WEB_USERNAME}
+      - homepage.widget.password=${CALIBRE_WEB_PASSWORD}
+    restart: unless-stopped

@@ -1,0 +1,40 @@
+#!/bin/bash
+
+SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+
+# Where they are downloaded
+SOURCE_DIR=
+# Where calibre listens for new books
+DEST_DIR=
+# Local file to know which books have been imported already
+HASH_DB="$SCRIPT_DIR/imported-books-hashes.txt"
+
+# Extensions to include (case-insensitive)
+EXTENSIONS="epub mobi pdf azw3 cbz cbr djvu"
+
+mkdir -p "$DEST_DIR"
+touch "$HASH_DB"
+
+# Build a case-insensitive find expression
+FIND_EXPR=""
+for ext in $EXTENSIONS; do
+    FIND_EXPR="$FIND_EXPR -iname '*.$ext' -o"
+done
+# Remove trailing -o
+FIND_EXPR="${FIND_EXPR::-3}"
+
+# Loop through all matching files recursively
+eval find "$SOURCE_DIR" -type f $FIND_EXPR | while read -r file; do
+    # Generate hash
+    hash=$(sha256sum "$file" | awk '{print $1}')
+
+    # Check if hash exists
+    if ! grep -q "$hash" "$HASH_DB"; then
+        # Copy file
+        cp "$file" "$DEST_DIR"
+        echo "$hash" >> "$HASH_DB"
+        echo "Imported new file: $file"
+    else
+        echo "Skipping already-imported file: $file"
+    fi
+done

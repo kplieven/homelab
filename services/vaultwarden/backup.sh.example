@@ -1,0 +1,39 @@
+#!/bin/bash
+
+SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+
+BACKUP_DIR=
+VAULTWARDEN_CONTAINER="vaultwarden"
+DATA_DIR=
+RCLONE_REMOTE=
+RCLONE_DESTINATION=
+
+mkdir -p "$BACKUP_DIR"
+
+# Run Vaultwarden backup from container
+docker compose -f "$SCRIPT_DIR/docker-compose.yml" exec -T "$VAULTWARDEN_CONTAINER" /vaultwarden backup
+
+# Find latest SQLite backup
+SQLITE_BACKUP_FILE=$(find "$DATA_DIR" -type f -name "db_2*.sqlite3" -mmin -5 | sort | tail -n 1)
+
+if [[ -z "$SQLITE_BACKUP_FILE" ]]; then
+    echo "Error: SQLite backup file not found."
+    exit 1
+fi
+
+# Create backup filename with timestamp
+CURRENT_DATE=$(date +%Y%m%d)
+BACKUP_FILENAME="vaultwarden_backup_${CURRENT_DATE}.tar.gz"
+
+# Create the backup archive
+tar -czf "$BACKUP_DIR/$BACKUP_FILENAME" \
+    -C "$DATA_DIR" "$(basename "$SQLITE_BACKUP_FILE")" \
+    -C "$DATA_DIR" attachments sends config.json \
+    -C "$DATA_DIR" $(basename -a "$DATA_DIR"/rsa_key*)
+
+echo "Backup archive created at: $BACKUP_DIR/$BACKUP_FILENAME"
+
+python3 $SCRIPT_DIR/../../scripts/backup_retention.py $BACKUP_DIR --apply
+
+# Upload to cloud using rclone
+rclone sync $BACKUP_DIR $RCLONE_REMOTE:$RCLONE_DESTINATION

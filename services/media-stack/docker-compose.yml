@@ -1,0 +1,245 @@
+services:
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Brussels
+    volumes:
+      - './prowlarr/config:/config'
+    ports:
+      - 9696:9696
+    labels:
+      - homepage.group=Media
+      - homepage.name=Prowlarr
+      - homepage.icon=prowlarr
+      - homepage.href=${PROWLARR_URL}
+      - homepage.widget.type=prowlarr
+      - homepage.widget.url=${PROWLARR_URL}
+      - homepage.widget.key=${PROWLARR_API_KEY}
+    restart: unless-stopped
+  sonarr:
+    container_name: sonarr
+    image: lscr.io/linuxserver/sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Brussels
+    ports:
+      - 8989:8989
+    volumes:
+      - './sonarr/config:/config'
+      - '/mnt/ssd/server:/data'
+    labels:
+      - homepage.group=Media
+      - homepage.name=Sonarr
+      - homepage.icon=sonarr
+      - homepage.href=${SONARR_URL}
+      - homepage.widget.type=sonarr
+      - homepage.widget.url=${SONARR_URL}
+      - homepage.widget.key=${SONARR_API_KEY}
+    restart: unless-stopped
+  radarr:
+    container_name: radarr
+    image: lscr.io/linuxserver/radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Brussels
+    ports:
+      - 7878:7878
+    volumes:
+      - './radarr/config:/config'
+      - '/mnt/ssd/server:/data'
+    labels:
+      - homepage.group=Media
+      - homepage.name=Radarr
+      - homepage.icon=radarr
+      - homepage.href=${RADARR_URL}
+      - homepage.widget.type=radarr
+      - homepage.widget.url=${RADARR_URL}
+      - homepage.widget.key=${RADARR_API_KEY}
+    restart: unless-stopped
+  bazarr:
+    container_name: bazarr
+    image: lscr.io/linuxserver/bazarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Brussels
+    volumes:
+      - './bazarr/config:/config'
+      - '/mnt/ssd/server:/data'
+    ports:
+      - 6767:6767
+    labels:
+      - homepage.group=Media
+      - homepage.name=Bazarr
+      - homepage.icon=bazarr
+      - homepage.href=${BAZARR_URL}
+      - homepage.widget.type=bazarr
+      - homepage.widget.url=${BAZARR_URL}
+      - homepage.widget.key=${BAZARR_API_KEY}
+    restart: unless-stopped
+  jellyfin:
+    container_name: jellyfin
+    image: lscr.io/linuxserver/jellyfin
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Brussels
+    ports:
+      - 8096:8096
+        #devices:
+        #- '/dev/dri/renderD128:/dev/dri/renderD128'
+        #- '/dev/dri/card0:/dev/dri/card0'
+    volumes:
+      - './jellyfin/config:/config'
+      - '/mnt/ssd/server/media:/data/media'
+    labels:
+      - homepage.group=Media
+      - homepage.name=Jellyfin
+      - homepage.icon=jellyfin
+      - homepage.href=${JELLYFIN_URL}
+      - homepage.widget.type=jellyfin
+      - homepage.widget.url=${JELLYFIN_URL}
+      - homepage.widget.key=${JELLYFIN_API_KEY}
+    restart: unless-stopped
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER}
+      - VPN_TYPE=${VPN_TYPE}
+      - OPENVPN_USER=${OPENVPN_USER}
+      - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
+      - SERVER_COUNTRIES=Switzerland
+    ports:
+      - 8005:8000/tcp
+      - 8888:8888/tcp
+      - 8388:8388/tcp
+      - 8388:8388/udp
+      - 8080:8080  # For qBittorrent web UI
+      - 8089:8089  # For qBittorrent mam web UI
+    labels:
+      - homepage.group=Download
+      - homepage.name=VPN
+      - homepage.icon=nordvpn
+      - homepage.widget.type=gluetun
+      - homepage.widget.url=${GLUETUN_URL}
+    restart: unless-stopped
+  seedboxapi:
+    image: myanonamouse/seedboxapi
+    user: 1001:1001 # Run as a non-root user.
+    container_name: seedboxapi
+    network_mode: "service:gluetun"
+    volumes:
+      - './mam-seedboxapi/config:/config'
+    environment:
+      - DEBUG=1
+      - mam_id=${MAM_SESSION_ID}
+      - interval=1
+  qbittorrent:
+    container_name: qbittorrent
+    image: lscr.io/linuxserver/qbittorrent:latest
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+      - TZ=Europe/Brussels
+      - WEBUI_PORT=8080
+    volumes:
+      - './qbittorrent/config:/config'
+      - '/mnt/ssd/server/torrents:/data/torrents'
+    labels:
+      - homepage.group=Download
+      - homepage.name=QBitTorrent
+      - homepage.icon=qbittorrent
+      - homepage.href=${QBITTORRENT_URL}
+      - homepage.widget.type=qbittorrent
+      - homepage.widget.url=${QBITTORRENT_URL}
+      - homepage.widget.username=${QBITTORRENT_USERNAME}
+      - homepage.widget.password=${QBITTORRENT_PASSWORD}
+    restart: unless-stopped
+  mam:
+    container_name: mam
+    image: lscr.io/linuxserver/qbittorrent:5.1.0
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+      - TZ=Europe/Brussels
+      - WEBUI_PORT=8089
+    volumes:
+      - './mam/config:/config'
+      - '/mnt/ssd/server:/data'
+    labels:
+      - homepage.group=Download
+      - homepage.name=MAM
+      - homepage.icon=qbittorrent
+      - homepage.href=${MAM_URL}
+      - homepage.widget.type=qbittorrent
+      - homepage.widget.url=${MAM_URL}
+      - homepage.widget.username=${MAM_USERNAME}
+      - homepage.widget.password=${MAM_PASSWORD}
+    restart: unless-stopped
+  flaresolverr:
+    container_name: flaresolverr
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    ports:
+      - 8191:8191
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Brussels
+    restart: unless-stopped
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=Europe/Brussels
+      - PORT=5055 #optional
+    ports:
+      - 5055:5055
+    volumes:
+      - './jellyseerr/config:/app/config'
+    labels:
+      - homepage.group=Media
+      - homepage.name=Jellyseerr
+      - homepage.icon=jellyseerr
+      - homepage.href=${JELLYSEERR_URL}
+      - homepage.widget.type=jellyseerr
+      - homepage.widget.url=${JELLYSEERR_URL}
+      - homepage.widget.key=${JELLYSEERR_API_KEY}
+    restart: unless-stopped
+  audiobookshelf:
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    ports:
+      - 13378:80
+    volumes:
+      - '/mnt/ssd/server/torrents/audiobooks:/audiobooks'
+      - './audiobookshelf/config:/config'
+      - './audiobookshelf/metadata:/metadata'
+    environment:
+      - TZ=Europe/Brussels
+    labels:
+      - homepage.group=Books
+      - homepage.name=Audiobookshelf
+      - homepage.icon=audiobookshelf
+      - homepage.href=${AUDIOBOOKSHELF_URL}
+      - homepage.widget.type=audiobookshelf
+      - homepage.widget.url=${AUDIOBOOKSHELF_URL}
+      - homepage.widget.key=${AUDIOBOOKSHELF_API_KEY}
+    restart: unless-stopped
