@@ -1,0 +1,19 @@
+services:
+  filebrowser:
+    image: filebrowser/filebrowser:v2-s6
+    container_name: filebrowser
+    restart: unless-stopped
+    volumes:
+      - '${BROWSER_ROOT_PATH}:/srv:ro'
+      - './filebrowser.db:/database/filebrowser.db'
+      - './settings.json:/config/settings.json'
+    environment:
+      PUID: 1000
+      PGID: 1000
+    ports:
+      - '${PORT:-5040}:80'
+    labels:
+      - homepage.group=Tools
+      - homepage.name=Files
+      - homepage.icon=files
+      - homepage.href=${HOMEPAGE_URL}

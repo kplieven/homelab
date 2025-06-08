@@ -1,0 +1,15 @@
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    environment:
+      HOMEPAGE_ALLOWED_HOSTS: ${HOMEPAGE_URL},${SERVER_IP}:3001
+      PUID: 1000
+      PGID: 996
+    ports:
+      - '${PORT:-3001}:3000'
+    volumes:
+      - './config:/app/config'
+      - '/run/docker.sock:/var/run/docker.sock:ro'
+      - '${BACKGROUND_IMAGE_PATH}:/app/public/images/background.jpg'
+    restart: unless-stopped

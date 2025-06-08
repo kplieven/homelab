@@ -1,0 +1,9 @@
+title: "Homelab"
+theme: dark
+layout:
+  Media:
+    style: row
+    columns: 3
+background:
+  image: /images/background.jpg
+cardBlur: xs

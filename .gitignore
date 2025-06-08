@@ -1,0 +1,25 @@
+# Environment files
+.env
+**.env
+!**.env.example
+
+# Configs
+**/config/
+**/data/
+**/metadata/
+**/database/
+**/logs/
+**/private/
+**/typesense/
+**/library/
+**/customFiles/
+**/pipeline/
+**/trainingData/
+**.db
+**/Caddyfile
+
+# Backup scripts
+**/backup.sh
+!**/backup.sh.example
+**/import-new-books.sh
+!**/import-new-books.sh.example

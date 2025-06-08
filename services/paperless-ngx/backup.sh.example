@@ -1,0 +1,32 @@
+#!/bin/bash
+
+SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+
+# Set variables
+BACKUP_DIR=
+PAPERLESS_CONTAINER="webserver"
+RCLONE_REMOTE=
+RCLONE_DESTINATION=
+
+# Create backup directory if it doesn't exist
+mkdir -p $BACKUP_DIR
+
+# Export Paperless-ngx data
+docker compose -f $SCRIPT_DIR/docker-compose.yml exec -T $PAPERLESS_CONTAINER document_exporter ../export
+
+# Create backup filename with timestamp
+CURRENT_DATE=$(date +%Y%m%d)
+BACKUP_FILENAME="paperless_backup_${CURRENT_DATE}.tar.gz"
+
+# Compress the exported data
+(
+cd $BACKUP_DIR
+tar -czf $BACKUP_FILENAME paperless-ngx
+)
+
+echo "Backup archive created at: $BACKUP_DIR/$BACKUP_FILENAME"
+
+python3 $SCRIPT_DIR/../../scripts/backup_retention.py $BACKUP_DIR --apply
+
+# Upload to cloud using rclone
+rclone sync $BACKUP_DIR $RCLONE_REMOTE:$RCLONE_DESTINATION --filter-from $BACKUP_DIR/rclone-filter.txt

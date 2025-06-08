@@ -1,0 +1,18 @@
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: unless-stopped
+    environment:
+      - DOMAIN=${URL}
+      - ADMIN_TOKEN=${ADMIN_TOKEN}
+    volumes:
+      - './data/:/data/'
+    ports:
+      - 81:80
+    labels:
+      - homepage.group=Tools
+      - homepage.name=Vaultwarden
+      - homepage.icon=vaultwarden
+      - homepage.href=${URL}
+

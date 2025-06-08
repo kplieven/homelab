@@ -1,0 +1,34 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/configs/info-widgets/
+
+- resources:
+    cpu: true
+    memory: true
+    uptime: true
+    disk:
+      - /
+    units: metric
+    network: true
+
+- search:
+    provider: google
+    target: _blank
+
+- datetime:
+    text_size: xl
+    locale: en-GB
+    format:
+      dateStyle: short
+      timeStyle: short
+      hourCycle: h23
+
+- openmeteo:
+    label: # optional
+    latitude: 
+    longitude: 
+    timezone:
+    units: metric # or imperial
+    cache: 10 # Time in minutes to cache API responses, to stay within limits
+    format: # optional, Intl.NumberFormat options
+      maximumFractionDigits: 1

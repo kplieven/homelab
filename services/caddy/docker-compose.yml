@@ -1,0 +1,30 @@
+services:
+  caddy:
+    build:
+      context: .
+    container_name: caddy
+    restart: unless-stopped
+    volumes:
+      - './Caddyfile:/etc/caddy/Caddyfile'  # Mount the Caddyfile
+      - './data:/data'  # Store Caddy data (e.g., certificates)
+      - './config:/config'  # Store additional configuration if needed
+    environment:
+      CF_API_KEY: ${CF_API_KEY}
+    ports:
+      - 80:80     # HTTP
+      - 443:443   # HTTPS (if you decide to enable TLS later)
+      - 2019:2019 # Stats
+    networks:
+      - local_network
+    labels:
+      - homepage.group=Infrastructure
+      - homepage.name=Caddy
+      - homepage.icon=caddy
+      - homepage.description=Reverse Proxy
+      - homepage.widget.type=caddy
+      - homepage.widget.url=${URL}
+
+networks:
+  local_network:
+    driver: bridge
+
