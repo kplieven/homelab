@@ -60,6 +60,7 @@ homelab/
 │   ├── backup_retention.py             # Automated backup cleanup
 │   └── update-and-run-containers.sh    # Update all Docker containers
 ├── services/                           # Docker services
+│   ├── affine/                         # Workspace for docs and whiteboards
 │   ├── caddy/                          # Reverse proxy & SSL termination
 │   ├── calibre/                        # E-book management
 │   ├── filebrowser/                    # Web-based file manager
