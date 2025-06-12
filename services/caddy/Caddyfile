@@ -1,0 +1,114 @@
+(cloudflare) {
+    tls {
+        dns cloudflare {$CF_API_KEY}
+    }
+}
+
+{
+    admin 0.0.0.0:2019
+}
+
+{$DOMAIN}, www.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:3001
+    import cloudflare
+}
+
+prowlarr.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:9696
+    import cloudflare
+}
+
+sonarr.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:8989
+    import cloudflare
+}
+
+radarr.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:7878
+    import cloudflare
+}
+
+bazarr.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:6767
+    import cloudflare
+}
+
+jellyfin.{$DOMAIN}, tv.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:8096
+    import cloudflare
+}
+
+qbittorrent.{$DOMAIN}, download.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:8080
+    import cloudflare
+}
+
+mam.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:8089
+    import cloudflare
+}
+
+immich.{$DOMAIN}, photos.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:2283
+    import cloudflare
+}
+
+paperless.{$DOMAIN}, documents.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:1111
+    import cloudflare
+}
+
+homeassistant.{$DOMAIN}, ha.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:8123
+    import cloudflare
+}
+
+pairdrop.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:3000
+    import cloudflare
+}
+
+jellyseerr.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:5055
+    import cloudflare
+}
+
+vaultwarden.{$DOMAIN}, passwords.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:81
+    import cloudflare
+}
+
+calibre-web.{$DOMAIN}, books.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:8083
+    import cloudflare
+}
+
+calibre.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:8183
+    import cloudflare
+}
+
+audiobookshelf.{$DOMAIN}, audiobooks.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:13378
+    import cloudflare
+}
+
+pdf.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:8484
+    import cloudflare
+}
+
+notes.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:8012
+    import cloudflare
+}
+
+files.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:5040
+    import cloudflare
+}
+
+affine.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:3010
+    import cloudflare
+}

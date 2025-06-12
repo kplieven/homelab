@@ -17,7 +17,6 @@
 **/pipeline/
 **/trainingData/
 **.db
-**/Caddyfile
 
 # Backup scripts
 **/backup.sh
