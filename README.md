@@ -68,6 +68,7 @@ homelab/
 │   ├── homepage/                       # Dashboard/homepage
 │   ├── immich/                         # Photo management & backup
 │   ├── many-notes/                     # Note-taking application
+│   ├── mealie/                         # Recipe management
 │   ├── media-stack/                    # Combined media automation stack
 │   │   ├── audiobookshelf/             # Audiobook server & player
 │   │   ├── bazarr/                     # Subtitle management
