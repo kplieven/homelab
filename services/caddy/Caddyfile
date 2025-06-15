@@ -112,3 +112,8 @@ affine.{$DOMAIN} {
     reverse_proxy {$SERVER_IP}:3010
     import cloudflare
 }
+
+mealie.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:9925
+    import cloudflare
+}
