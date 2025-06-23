@@ -139,11 +139,11 @@ services:
     restart: unless-stopped
   seedboxapi:
     image: myanonamouse/seedboxapi
-    user: 1001:1001 # Run as a non-root user.
+    user: 1000:1000 # Run as a non-root user.
     container_name: seedboxapi
     network_mode: "service:gluetun"
     volumes:
-      - './mam-seedboxapi/config:/config'
+      - './mam-seedboxapi:/config'
     environment:
       - DEBUG=1
       - mam_id=${MAM_SESSION_ID}
