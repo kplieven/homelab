@@ -117,3 +117,13 @@ mealie.{$DOMAIN} {
     reverse_proxy {$SERVER_IP}:9925
     import cloudflare
 }
+
+your-spotify-api.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:9400
+    import cloudflare
+}
+
+spotify-stats.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:9401
+    import cloudflare
+}

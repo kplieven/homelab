@@ -1,0 +1,33 @@
+services:
+  server:
+    image: yooooomi/your_spotify_server
+    restart: unless-stopped
+    ports:
+      - '${SERVER_PORT:-9400}:8080'
+    links:
+      - mongo
+    depends_on:
+      - mongo
+    environment:
+      API_ENDPOINT: ${SERVER_URL} # Add :${SERVER_PORT} if not using a reverse proxy
+      CLIENT_ENDPOINT: ${CLIENT_URL} # Add :${CLIENT_PORT} if not using a reverse proxy
+      SPOTIFY_PUBLIC: ${SPOTIFY_PUBLIC}
+      SPOTIFY_SECRET: ${SPOTIFY_SECRET}
+  mongo:
+    container_name: mongo
+    image: mongo:6
+    volumes:
+      - ./database:/data/db
+
+  web:
+    image: yooooomi/your_spotify_client
+    restart: unless-stopped
+    ports:
+      - '${CLIENT_PORT:-9401}:3000'
+    environment:
+      API_ENDPOINT: ${SERVER_URL}
+    labels:
+      - homepage.group=Tools
+      - homepage.name=Spotify stats
+      - homepage.icon=your-spotify
+      - homepage.href=${HOMEPAGE_URL}
