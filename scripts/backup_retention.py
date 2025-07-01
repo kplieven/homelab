@@ -3,6 +3,7 @@
 import os
 import re
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 from typing import List
 
 def parse_date_from_filename(filename: str) -> datetime:
@@ -27,27 +28,23 @@ def get_backup_files(directory: str) -> List[datetime]:
 
 def should_keep_file(file_date: datetime, today: datetime) -> bool:
     """Determine if a file should be kept based on retention rules"""
-    # Rule 4: Keep all backups of the last 3 days
+    # Rule 1: Keep all backups of the last 3 days
     if file_date > today - timedelta(days=3):
         return True
     
-    # Rule 1: Keep January 1st backups for the last two years
+    # Rule 2: Keep January 1st backups for the last two years
     if file_date.month == 1 and file_date.day == 1:
         if file_date.year >= today.year - 1:  # Current year and previous year
             return True
     
-    # Rule 2: Keep first day of month for current and last month
+    # Rule 3: Keep first day of month for current and last month, but only delete
+    # once the currently monthly one would not be kept by rule 1
     if file_date.day == 1:
-        if file_date.year == today.year and file_date.month == today.month:
+        if file_date > today - relativedelta(months=2, days=3):
             return True
-        last_month = today.replace(day=1) - timedelta(days=1)
-        if file_date.year == last_month.year and file_date.month == last_month.month:
-            current_month_first_day = today.replace(day=1)
-            if current_month_first_day < today - timedelta(days=3):
-                return True
     
-    # Rule 3: Keep first day of the last 2 weeks, but only delete once
-    # the current weekly one would not be kept by rule 4
+    # Rule 4: Keep first day of the last 2 weeks, but only delete once
+    # the current weekly one would not be kept by rule 1
     if file_date.weekday() == 0:
         if file_date > today - timedelta(weeks=2, days=3):
             return True
