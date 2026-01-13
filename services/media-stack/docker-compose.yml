@@ -143,9 +143,10 @@ services:
     container_name: seedboxapi
     network_mode: "service:gluetun"
     volumes:
-      - './mam-seedboxapi:/config'
+      - './mam-seedboxapi/config:/config'
+      - './mam-seedboxapi/tmp:/tmp'
     environment:
-      - DEBUG=1
+      - DEBUG=2
       - mam_id=${MAM_SESSION_ID}
       - interval=1
   qbittorrent:
