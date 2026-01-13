@@ -9,7 +9,7 @@ services:
     volumes:
       - './data/:/data/'
     ports:
-      - 81:80
+      - '${PORT:-81}:80'
     labels:
       - homepage.group=Tools
       - homepage.name=Vaultwarden
