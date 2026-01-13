@@ -137,3 +137,8 @@ adguard.{$DOMAIN} {
     reverse_proxy {$SERVER_IP}:3009
     import cloudflare
 }
+
+vpn.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:51821
+    import cloudflare
+}
