@@ -12,7 +12,7 @@ services:
             - DEBUG_MODE=false # Set to true to debug container and peer connections.
             - TZ=Europe/Brussels # Time Zone
         ports:
-            - 3000:3000 # Web UI
+            - ${PORT:-3000}:3000 # Web UI
         labels:
             - homepage.group=Tools
             - homepage.name=PairDrop
