@@ -50,7 +50,7 @@ This repository contains a complete homelab infrastructure setup featuring:
    ```
 
 5. **Access your services**:
-   - Dashboard: `http://localhost:3000` (or your configured domain)
+   - Dashboard: `http://<server IP>:3001` (or your configured domain)
    - Individual services: See [Service Overview](#-service-overview) below
 
 ### Directory Structure
@@ -60,6 +60,7 @@ homelab/
 │   ├── backup_retention.py             # Automated backup cleanup
 │   └── update-and-run-containers.sh    # Update all Docker containers
 ├── services/                           # Docker services
+│   ├── adguard-home/                   # DNS-level ad blocking
 │   ├── affine/                         # Workspace for docs and whiteboards
 │   ├── caddy/                          # Reverse proxy & SSL termination
 │   ├── calibre/                        # E-book management
@@ -67,6 +68,7 @@ homelab/
 │   ├── home-assistant/                 # Home automation platform
 │   ├── homepage/                       # Dashboard/homepage
 │   ├── immich/                         # Photo management & backup
+│   ├── komodo/                         # Docker container management
 │   ├── many-notes/                     # Note-taking application
 │   ├── mealie/                         # Recipe management
 │   ├── media-stack/                    # Combined media automation stack
@@ -84,7 +86,9 @@ homelab/
 │   ├── pairdrop/                       # Local file sharing
 │   ├── paperless-ngx/                  # Document management system
 │   ├── stirling-pdf/                   # PDF manipulation tools
-│   └── vaultwarden/                    # Password manager (Bitwarden server)
+│   ├── vaultwarden/                    # Password manager (Bitwarden server)
+│   ├── wg-easy/                        # WireGuard VPN with web UI
+│   └── your-spotify/                   # Spotify listening statistics
 └── README.md                           # This file
 ```
 
@@ -92,13 +96,15 @@ homelab/
 
 ### 🌐 Infrastructure
 | Service | Purpose | Port | Status |
-|---------|---------|--------------|--------|
+|---------|---------|------|--------|
 | [Caddy](services/caddy/) | Reverse proxy & SSL | 80, 443, 2019 (admin) | ✅ Production |
-| [Homepage](services/homepage/) | Central dashboard | 3000 | ✅ Production |
+| [Homepage](services/homepage/) | Central dashboard | 3001 | ✅ Production |
+| [AdGuard Home](services/adguard-home/) | DNS-level ad blocking | 53, 3000 | ✅ Production |
+| [Komodo](services/komodo/) | Docker container management | - | ✅ Production |
 
 ### 🎬 Media
 | Service | Purpose | Port | Status |
-|---------|---------|--------------|--------|
+|---------|---------|------|--------|
 | [Media Stack](services/media-stack/) | Complete media automation | Various | ✅ Production |
 | ↳ Jellyfin | Media server & streaming | 8096 | ✅ Production |
 | ↳ Jellyseerr | Media request management | 5055 | ✅ Production |
@@ -107,46 +113,49 @@ homelab/
 | ↳ Prowlarr | Indexer management | 9696 | ✅ Production |
 | ↳ Bazarr | Subtitle management | 6767 | ✅ Production |
 | ↳ qBittorrent | Download client | 8080 | ✅ Production |
-| ↳ qBittorrent (MyAnonaMouse) | Download client for MAM | 8089 | ✅ Production |
+| ↳ qBittorrent (MAM) | Download client for MyAnonaMouse | 8089 | ✅ Production |
 | ↳ Audiobookshelf | Audiobook server | 13378 | ✅ Production |
+| [Your Spotify](services/your-spotify/) | Spotify listening statistics | - | ✅ Production |
 
 ### 📄 Documents
 | Service | Purpose | Port | Status |
-|---------|---------|--------------|--------|
+|---------|---------|------|--------|
 | [Paperless-NGX](services/paperless-ngx/) | Document management | 1111 | ✅ Production |
 | [Stirling PDF](services/stirling-pdf/) | PDF manipulation | 8484 | ✅ Production |
 
 ### 🗃️ Files
 | Service | Purpose | Port | Status |
-|---------|---------|--------------|--------|
+|---------|---------|------|--------|
 | [File Browser](services/filebrowser/) | Web file manager | 5040 | ✅ Production |
 | [PairDrop](services/pairdrop/) | Local file sharing | 3000 | ✅ Production |
 
 ### 📚 Productivity
 | Service | Purpose | Port | Status |
-|---------|---------|--------------|--------|
+|---------|---------|------|--------|
+| [Affine](services/affine/) | Docs and whiteboards | - | ✅ Production |
 | [Many Notes](services/many-notes/) | Note-taking app | 8012 | ✅ Production |
-| [Homepage](services/homepage/) | Dashboard | 3001 | ✅ Production |
+| [Mealie](services/mealie/) | Recipe management | 9925 | ✅ Production |
 
-### 📚 [E-books](services/calibre)
+### 📚 E-books
 | Service | Purpose | Port | Status |
-|---------|---------|--------------|--------|
-| Calibre | E-book management | 8183 | ✅ Production |
-| Calibre-web | Calibre frontend | 8083 | ✅ Production |
+|---------|---------|------|--------|
+| [Calibre](services/calibre/) | E-book management | 8183 | ✅ Production |
+| ↳ Calibre-web | Calibre frontend | 8083 | ✅ Production |
 
 ### 🔒 Security
 | Service | Purpose | Port | Status |
-|---------|---------|--------------|--------|
+|---------|---------|------|--------|
 | [Vaultwarden](services/vaultwarden/) | Password manager | 81 | ✅ Production |
+| [WG-Easy](services/wg-easy/) | WireGuard VPN | 51820, 51821 | ✅ Production |
 
 ### 🏠 Automation
 | Service | Purpose | Port | Status |
-|---------|---------|--------------|--------|
+|---------|---------|------|--------|
 | [Home Assistant](services/home-assistant/) | Home automation | 8123 | ✅ Production |
 
 ### 📸 Photos
 | Service | Purpose | Port | Status |
-|---------|---------|--------------|--------|
+|---------|---------|------|--------|
 | [Immich](services/immich/) | Photo management | 2283 | ✅ Production |
 
 ## 🛠️ Management
@@ -217,7 +226,7 @@ Caddy automatically handles:
 - ✅ Load balancing
 
 #### Port Management
-- **External Ports**: Only 80 (HTTP) and 443 (HTTPS) exposed, or expose none and connect through a VPN (such as Wireguard or Tailscale)
+- **External Ports**: Only 80 (HTTP) and 443 (HTTPS) exposed, or expose none and connect through a VPN (such as WireGuard via WG-Easy or Tailscale)
 - **Internal Ports**: Services communicate via localhost network
 
 ### Storage Configuration
@@ -326,12 +335,25 @@ docker-compose -f services/SERVICE_NAME/docker-compose.yml logs -f
 
 ## 📚 Documentation
 
-### Service Documentation (TODO!)
+### Service Documentation
+- [AdGuard Home Setup](services/adguard-home/README.md)
+- [Affine Setup](services/affine/README.md)
 - [Caddy Configuration Guide](services/caddy/README.md)
-- [Media Stack Setup Guide](services/media-stack/README.md)
-- [Paperless-NGX Documentation](services/paperless-ngx/README.md)
-- [Vaultwarden Setup Guide](services/vaultwarden/README.md)
+- [Calibre Setup](services/calibre/README.md)
+- [File Browser Setup](services/filebrowser/README.md)
 - [Home Assistant Configuration](services/home-assistant/README.md)
+- [Homepage Setup](services/homepage/README.md)
+- [Immich Setup](services/immich/README.md)
+- [Komodo Setup](services/komodo/README.md)
+- [Many Notes Setup](services/many-notes/README.md)
+- [Mealie Setup](services/mealie/README.md)
+- [Media Stack Setup Guide](services/media-stack/README.md)
+- [PairDrop Setup](services/pairdrop/README.md)
+- [Paperless-NGX Documentation](services/paperless-ngx/README.md)
+- [Stirling PDF Setup](services/stirling-pdf/README.md)
+- [Vaultwarden Setup Guide](services/vaultwarden/README.md)
+- [WG-Easy Setup](services/wg-easy/README.md)
+- [Your Spotify Setup](services/your-spotify/README.md)
 
 ### External Resources
 - [Docker Compose Documentation](https://docs.docker.com/compose/)
