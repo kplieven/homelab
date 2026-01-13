@@ -118,6 +118,11 @@ mealie.{$DOMAIN} {
     import cloudflare
 }
 
+docker.{$DOMAIN}, komodo.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:9120
+    import cloudflare
+}
+
 your-spotify-api.{$DOMAIN} {
     reverse_proxy {$SERVER_IP}:9400
     import cloudflare
