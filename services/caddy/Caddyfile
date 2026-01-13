@@ -127,3 +127,8 @@ spotify-stats.{$DOMAIN} {
     reverse_proxy {$SERVER_IP}:9401
     import cloudflare
 }
+
+adguard.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:3009
+    import cloudflare
+}

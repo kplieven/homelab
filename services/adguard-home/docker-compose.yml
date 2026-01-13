@@ -1,0 +1,39 @@
+version: '3.7'
+
+services:
+  adguardhome:
+    image: adguard/adguardhome:latest
+    container_name: adguardhome
+    restart: unless-stopped
+    volumes:
+      - ./data:/opt/adguardhome/work
+      - ./config:/opt/adguardhome/conf
+    ports:
+      - "53:53/tcp" # plain DNS
+      - "53:53/udp" # plain DNS
+      - "67:67/udp"
+      - "68:68/udp"
+      - "${PORT:-3009}:3000/tcp" # Web interface
+      - "853:853/tcp"
+      - "784:784/udp"
+      - "853:853/udp"
+      - "8853:8853/udp"
+      - "5443:5443/tcp"
+      - "5443:5443/udp"
+    labels:
+      - homepage.group=Infrastructure
+      - homepage.name=AdGuard Home
+      - homepage.icon=adguard-home
+      - homepage.href=${HOMEPAGE_URL}
+      - homepage.widget.type=adguard
+      - homepage.widget.url=${HOMEPAGE_WIDGET_URL}
+      - homepage.widget.username=${USERNAME}
+      - homepage.widget.password=${PASSWORD}
+    environment:
+      - TZ=Europe/Brussels
+    networks:
+      - adguard_net
+
+networks:
+  adguard_net:
+    driver: bridge
