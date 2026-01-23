@@ -142,3 +142,8 @@ vpn.{$DOMAIN} {
     reverse_proxy {$SERVER_IP}:51821
     import cloudflare
 }
+
+links.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:3333
+    import cloudflare
+}
