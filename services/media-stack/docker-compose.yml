@@ -209,9 +209,10 @@ services:
       - PGID=1000
       - TZ=Europe/Brussels
     restart: unless-stopped
-  jellyseerr:
-    image: fallenbagel/jellyseerr:latest
-    container_name: jellyseerr
+  seerr:
+    image: ghcr.io/seerr-team/seerr:latest
+    init: true
+    container_name: seerr
     environment:
       - LOG_LEVEL=debug
       - TZ=Europe/Brussels
@@ -222,8 +223,8 @@ services:
       - './jellyseerr/config:/app/config'
     labels:
       - homepage.group=Media
-      - homepage.name=Jellyseerr
-      - homepage.icon=jellyseerr
+      - homepage.name=Seerr
+      - homepage.icon=seerr
       - homepage.href=${JELLYSEERR_URL}
       - homepage.widget.type=jellyseerr
       - homepage.widget.url=${JELLYSEERR_URL}

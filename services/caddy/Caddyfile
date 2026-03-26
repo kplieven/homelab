@@ -69,13 +69,25 @@ pairdrop.{$DOMAIN} {
     import cloudflare
 }
 
-jellyseerr.{$DOMAIN} {
+seerr.{$DOMAIN}, requests.{$DOMAIN} {
     reverse_proxy {$SERVER_IP}:5055
     import cloudflare
 }
 
 vaultwarden.{$DOMAIN}, passwords.{$DOMAIN} {
     reverse_proxy {$SERVER_IP}:81
+    import cloudflare
+}
+
+steel-design.{$DOMAIN} {
+    root * /srv/steel-design-crm-frontend
+    file_server
+    try_files {path} /index.html
+    import cloudflare
+}
+
+steel-design-api.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:4725
     import cloudflare
 }
 
@@ -141,6 +153,11 @@ adguard.{$DOMAIN} {
 
 vpn.{$DOMAIN} {
     reverse_proxy {$SERVER_IP}:51821
+    import cloudflare
+}
+
+backup.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:4096
     import cloudflare
 }
 
