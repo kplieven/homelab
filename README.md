@@ -62,6 +62,7 @@ homelab/
 ├── services/                           # Docker services
 │   ├── adguard-home/                   # DNS-level ad blocking
 │   ├── affine/                         # Workspace for docs and whiteboards
+│   ├── babybuddy/                      # Baby tracking application
 │   ├── caddy/                          # Reverse proxy & SSL termination
 │   ├── calibre/                        # E-book management
 │   ├── filebrowser/                    # Web-based file manager
@@ -153,7 +154,12 @@ homelab/
 |---------|---------|------|--------|
 | [Home Assistant](services/home-assistant/) | Home automation | 8123 | ✅ Production |
 
-### 📸 Photos
+### � Family
+| Service | Purpose | Port | Status |
+|---------|---------|------|--------|
+| [Babybuddy](services/babybuddy/) | Baby tracking | 1234 | ✅ Production |
+
+### �📸 Photos
 | Service | Purpose | Port | Status |
 |---------|---------|------|--------|
 | [Immich](services/immich/) | Photo management | 2283 | ✅ Production |
@@ -338,6 +344,7 @@ docker-compose -f services/SERVICE_NAME/docker-compose.yml logs -f
 ### Service Documentation
 - [AdGuard Home Setup](services/adguard-home/README.md)
 - [Affine Setup](services/affine/README.md)
+- [Babybuddy Setup](services/babybuddy/README.md)
 - [Caddy Configuration Guide](services/caddy/README.md)
 - [Calibre Setup](services/calibre/README.md)
 - [File Browser Setup](services/filebrowser/README.md)

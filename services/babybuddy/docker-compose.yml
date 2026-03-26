@@ -1,0 +1,16 @@
+services:
+  babybuddy:
+    image: lscr.io/linuxserver/babybuddy
+    container_name: babybuddy
+    environment:
+      - TZ=Europe/Brussels
+    volumes:
+      - './config:/config'
+    ports:
+      - '${PORT:-1234}:8000'
+    labels:
+      - homepage.group=Tools
+      - homepage.name=Babybuddy
+      - homepage.icon=babybuddy
+      - homepage.href=${URL}
+    restart: unless-stopped

@@ -148,3 +148,8 @@ links.{$DOMAIN} {
     reverse_proxy {$SERVER_IP}:3333
     import cloudflare
 }
+
+baby.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:1234
+    import cloudflare
+}
