@@ -71,7 +71,6 @@ homelab/
 │   ├── immich/                         # Photo management & backup
 │   ├── komodo/                         # Docker container management
 │   ├── linkwarden/                     # Bookmark manager
-│   ├── many-notes/                     # Note-taking application
 │   ├── mealie/                         # Recipe management
 │   ├── media-stack/                    # Combined media automation stack
 │   │   ├── audiobookshelf/             # Audiobook server & player
@@ -136,7 +135,6 @@ homelab/
 |---------|---------|------|--------|
 | [Affine](services/affine/) | Docs and whiteboards | - | ✅ Production |
 | [Linkwarden](services/linkwarden/) | Bookmark manager | 3333 | ✅ Production |
-| [Many Notes](services/many-notes/) | Note-taking app | 8012 | ✅ Production |
 | [Mealie](services/mealie/) | Recipe management | 9925 | ✅ Production |
 
 ### 📚 E-books
@@ -355,7 +353,6 @@ docker-compose -f services/SERVICE_NAME/docker-compose.yml logs -f
 - [Immich Setup](services/immich/README.md)
 - [Komodo Setup](services/komodo/README.md)
 - [Linkwarden Setup](services/linkwarden/README.md)
-- [Many Notes Setup](services/many-notes/README.md)
 - [Mealie Setup](services/mealie/README.md)
 - [Media Stack Setup Guide](services/media-stack/README.md)
 - [PairDrop Setup](services/pairdrop/README.md)
