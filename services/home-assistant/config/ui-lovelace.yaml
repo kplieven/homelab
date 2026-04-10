@@ -1,0 +1,65 @@
+title: Home
+views:
+  - title: Overview
+    icon: mdi:home
+    path: default_view
+    cards:
+
+      # ── Security ──────────────────────────────────────────
+      - type: vertical-stack
+        cards:
+          - type: markdown
+            content: "## 🔒 Security"
+          - type: picture-glance
+            title: Front Door
+            camera_image: camera.g4_doorbell_pro
+            entities:
+              - entity: event.g4_doorbell_pro_ring
+                icon: mdi:doorbell
+              - entity: light.front_door_light
+                icon: mdi:lightbulb
+          - type: horizontal-stack
+            cards:
+              - type: tile
+                entity: event.g4_doorbell_pro_ring
+                name: Doorbell — last ring
+              - type: tile
+                entity: light.front_door_light
+                name: Front door light
+
+      # ── Network ───────────────────────────────────────────
+      - type: vertical-stack
+        cards:
+          - type: markdown
+            content: "## 📡 Network"
+          - type: horizontal-stack
+            cards:
+              - type: entities
+                title: Dream Router
+                entities:
+                  - entity: sensor.udm_uptime
+                    name: Uptime
+                  - entity: sensor.udm_wan_ip
+                    name: WAN IP
+              - type: entities
+                title: AP 1
+                entities:
+                  - entity: sensor.ap_1_clients
+                    name: Clients
+                  - entity: sensor.ap_1_uptime
+                    name: Uptime
+              - type: entities
+                title: AP 2
+                entities:
+                  - entity: sensor.ap_2_clients
+                    name: Clients
+                  - entity: sensor.ap_2_uptime
+                    name: Uptime
+
+      # ── Media ─────────────────────────────────────────────
+      - type: vertical-stack
+        cards:
+          - type: markdown
+            content: "## 🎵 Media"
+          - type: media-control
+            entity: media_player.sonos_beam
