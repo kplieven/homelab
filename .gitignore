@@ -1,3 +1,9 @@
+# Superpowers brainstorm sessions
+.superpowers/
+
+# Git worktrees
+.worktrees/
+
 # Environment files
 .env
 **.env
