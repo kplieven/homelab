@@ -19,7 +19,7 @@ services:
       - postgres
       - meilisearch
     labels:
-      - homepage.group=Tools
+      - homepage.group=Productivity
       - homepage.name=Links
       - homepage.icon=linkwarden
       - homepage.href=${URL}

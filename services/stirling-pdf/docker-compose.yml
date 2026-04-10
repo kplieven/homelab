@@ -13,7 +13,7 @@ services:
       - DOCKER_ENABLE_SECURITY=false
       - LANGS=en_GB
     labels:
-      - homepage.group=Tools
+      - homepage.group=Documents
       - homepage.name=Stirling PDF
       - homepage.icon=stirling-pdf
       - homepage.href=${URL}

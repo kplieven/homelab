@@ -27,7 +27,7 @@ services:
     environment:
       API_ENDPOINT: ${SERVER_URL}
     labels:
-      - homepage.group=Tools
+      - homepage.group=Media
       - homepage.name=Spotify stats
       - homepage.icon=your-spotify
       - homepage.href=${HOMEPAGE_URL}

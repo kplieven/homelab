@@ -10,7 +10,7 @@ services:
     privileged: true
     network_mode: host
     labels:
-      - homepage.group=Infrastructure
+      - homepage.group=Automation
       - homepage.name=Home Assistant
       - homepage.icon=home-assistant
       - homepage.href=${URL}

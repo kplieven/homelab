@@ -13,7 +13,7 @@ services:
     ports:
       - '${PORT:-5040}:80'
     labels:
-      - homepage.group=Tools
+      - homepage.group=Files
       - homepage.name=Files
       - homepage.icon=files
       - homepage.href=${HOMEPAGE_URL}

@@ -28,7 +28,7 @@ services:
       postgres:
         condition: service_healthy
     labels:
-      - homepage.group=Tools
+      - homepage.group=Productivity
       - homepage.name=Mealie
       - homepage.icon=mealie
       - homepage.href=${URL}

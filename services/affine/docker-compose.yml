@@ -24,7 +24,7 @@ services:
       - AFFINE_INDEXER_ENABLED=false
     restart: unless-stopped
     labels:
-      - homepage.group=Tools
+      - homepage.group=Productivity
       - homepage.name=Affine
       - homepage.icon=affine
       - homepage.href=${URL}

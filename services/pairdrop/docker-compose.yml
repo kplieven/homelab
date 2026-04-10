@@ -14,7 +14,7 @@ services:
         ports:
             - ${PORT:-3000}:3000 # Web UI
         labels:
-            - homepage.group=Tools
+            - homepage.group=Files
             - homepage.name=PairDrop
             - homepage.icon=pairdrop
             - homepage.href=${URL}

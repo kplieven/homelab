@@ -9,7 +9,7 @@ services:
     ports:
       - '${PORT:-1234}:8000'
     labels:
-      - homepage.group=Tools
+      - homepage.group=Automation
       - homepage.name=Babybuddy
       - homepage.icon=babybuddy
       - homepage.href=${URL}

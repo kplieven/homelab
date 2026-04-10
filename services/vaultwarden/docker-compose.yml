@@ -11,7 +11,7 @@ services:
     ports:
       - '${PORT:-81}:80'
     labels:
-      - homepage.group=Tools
+      - homepage.group=Security
       - homepage.name=Vaultwarden
       - homepage.icon=vaultwarden
       - homepage.href=${URL}
