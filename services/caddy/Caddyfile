@@ -170,3 +170,8 @@ baby.{$DOMAIN} {
     reverse_proxy {$SERVER_IP}:1234
     import cloudflare
 }
+
+uptime.{$DOMAIN}, status.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:3002
+    import cloudflare
+}

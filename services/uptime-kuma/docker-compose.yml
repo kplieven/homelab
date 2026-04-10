@@ -1,0 +1,17 @@
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    restart: unless-stopped
+    volumes:
+      - './data:/app/data'
+    ports:
+      - '${PORT:-3002}:3001'
+    labels:
+      - homepage.group=Infrastructure
+      - homepage.name=Uptime Kuma
+      - homepage.icon=uptime-kuma
+      - homepage.href=${URL}
+      - homepage.widget.type=uptimekuma
+      - homepage.widget.url=${URL}
+      - homepage.widget.slug=${SLUG}

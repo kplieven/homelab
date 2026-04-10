@@ -88,6 +88,7 @@ homelab/
 │   ├── pairdrop/                       # Local file sharing
 │   ├── paperless-ngx/                  # Document management system
 │   ├── stirling-pdf/                   # PDF manipulation tools
+│   ├── uptime-kuma/                    # Uptime monitoring
 │   ├── vaultwarden/                    # Password manager (Bitwarden server)
 │   ├── wg-easy/                        # WireGuard VPN with web UI
 │   └── your-spotify/                   # Spotify listening statistics
@@ -103,6 +104,7 @@ homelab/
 | [Homepage](services/homepage/) | Central dashboard | 3001 | ✅ Production |
 | [AdGuard Home](services/adguard-home/) | DNS-level ad blocking | 53, 3000 | ✅ Production |
 | [Komodo](services/komodo/) | Docker container management | - | ✅ Production |
+| [Uptime Kuma](services/uptime-kuma/) | Uptime monitoring | 3002 | ✅ Production |
 
 ### 🎬 Media
 | Service | Purpose | Port | Status |
@@ -361,6 +363,7 @@ docker-compose -f services/SERVICE_NAME/docker-compose.yml logs -f
 - [PairDrop Setup](services/pairdrop/README.md)
 - [Paperless-NGX Documentation](services/paperless-ngx/README.md)
 - [Stirling PDF Setup](services/stirling-pdf/README.md)
+- [Uptime Kuma Setup](services/uptime-kuma/README.md)
 - [Vaultwarden Setup Guide](services/vaultwarden/README.md)
 - [WG-Easy Setup](services/wg-easy/README.md)
 - [Your Spotify Setup](services/your-spotify/README.md)
