@@ -1,0 +1,60 @@
+title: Home (Sections)
+views:
+  - title: Overview
+    icon: mdi:home
+    path: sections_view
+    type: sections
+    max_columns: 3
+    sections:
+
+      # ── Security ──────────────────────────────────────────
+      - type: grid
+        title: 🔒 Security
+        cards:
+          - type: picture-glance
+            title: Front Door
+            camera_image: camera.g4_doorbell_pro
+            entities:
+              - entity: event.g4_doorbell_pro_ring
+                icon: mdi:doorbell
+              - entity: light.front_door_light
+                icon: mdi:lightbulb
+          - type: tile
+            entity: event.g4_doorbell_pro_ring
+            name: Doorbell — last ring
+          - type: tile
+            entity: light.front_door_light
+            name: Front door light
+
+      # ── Network ───────────────────────────────────────────
+      - type: grid
+        title: 📡 Network
+        cards:
+          - type: entities
+            title: Dream Router
+            entities:
+              - entity: sensor.udm_uptime
+                name: Uptime
+              - entity: sensor.udm_wan_ip
+                name: WAN IP
+          - type: entities
+            title: AP 1
+            entities:
+              - entity: sensor.ap_1_clients
+                name: Clients
+              - entity: sensor.ap_1_uptime
+                name: Uptime
+          - type: entities
+            title: AP 2
+            entities:
+              - entity: sensor.ap_2_clients
+                name: Clients
+              - entity: sensor.ap_2_uptime
+                name: Uptime
+
+      # ── Media ─────────────────────────────────────────────
+      - type: grid
+        title: 🎵 Media
+        cards:
+          - type: media-control
+            entity: media_player.sonos_beam
