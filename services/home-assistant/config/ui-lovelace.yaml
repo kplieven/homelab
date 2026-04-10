@@ -1,15 +1,16 @@
-title: Home
+title: Home (Sections)
 views:
   - title: Overview
     icon: mdi:home
-    path: default_view
-    cards:
+    path: sections_view
+    type: sections
+    max_columns: 3
+    sections:
 
       # ── Security ──────────────────────────────────────────
-      - type: vertical-stack
+      - type: grid
+        title: 🔒 Security
         cards:
-          - type: markdown
-            content: "## 🔒 Security"
           - type: picture-glance
             title: Front Door
             camera_image: camera.g4_doorbell_pro_high_resolution_channel
@@ -18,48 +19,42 @@ views:
                 icon: mdi:doorbell
               - entity: switch.licht_voordeur
                 icon: mdi:lightbulb
-          - type: horizontal-stack
-            cards:
-              - type: tile
-                entity: event.g4_doorbell_pro_doorbell
-                name: Doorbell — last ring
-              - type: tile
-                entity: switch.licht_voordeur
-                name: Front door light
+          - type: tile
+            entity: event.g4_doorbell_pro_doorbell
+            name: Doorbell — last ring
+          - type: tile
+            entity: switch.licht_voordeur
+            name: Front door light
 
       # ── Network ───────────────────────────────────────────
-      - type: vertical-stack
+      - type: grid
+        title: 📡 Network
         cards:
-          - type: markdown
-            content: "## 📡 Network"
-          - type: horizontal-stack
-            cards:
-              - type: entities
-                title: Dream Router
-                entities:
-                  - entity: sensor.dream_router_uptime
-                    name: Uptime
-                  - entity: sensor.dream_router_state
-                    name: State
-              - type: entities
-                title: U6 AP
-                entities:
-                  - entity: sensor.u6_state
-                    name: State
-                  - entity: sensor.u6_uptime
-                    name: Uptime
-              - type: entities
-                title: U7 Lite AP
-                entities:
-                  - entity: sensor.u7_lite_state
-                    name: State
-                  - entity: sensor.u7_lite_uptime
-                    name: Uptime
+          - type: entities
+            title: Dream Router
+            entities:
+              - entity: sensor.dream_router_uptime
+                name: Uptime
+              - entity: sensor.dream_router_state
+                name: State
+          - type: entities
+            title: U6 AP
+            entities:
+              - entity: sensor.u6_state
+                name: State
+              - entity: sensor.u6_uptime
+                name: Uptime
+          - type: entities
+            title: U7 Lite AP
+            entities:
+              - entity: sensor.u7_lite_state
+                name: State
+              - entity: sensor.u7_lite_uptime
+                name: Uptime
 
       # ── Media ─────────────────────────────────────────────
-      - type: vertical-stack
+      - type: grid
+        title: 🎵 Media
         cards:
-          - type: markdown
-            content: "## 🎵 Media"
           - type: media-control
             entity: media_player.living_room

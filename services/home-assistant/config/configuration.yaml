@@ -19,10 +19,3 @@ scene: !include scenes.yaml
 
 lovelace:
   mode: yaml
-  dashboards:
-    lovelace-sections:
-      mode: yaml
-      title: Home (Sections)
-      icon: mdi:view-dashboard-variant
-      show_in_sidebar: true
-      filename: dashboards/sections.yaml
