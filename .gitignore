@@ -11,6 +11,10 @@
 
 # Configs
 **/config/
+!services/home-assistant/config/configuration.yaml
+!services/home-assistant/config/ui-lovelace.yaml
+!services/home-assistant/config/dashboards/
+!services/home-assistant/config/dashboards/**
 **/data/
 **/metadata/
 **/database/

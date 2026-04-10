@@ -12,19 +12,19 @@ views:
             content: "## 🔒 Security"
           - type: picture-glance
             title: Front Door
-            camera_image: camera.g4_doorbell_pro
+            camera_image: camera.g4_doorbell_pro_high_resolution_channel
             entities:
-              - entity: event.g4_doorbell_pro_ring
+              - entity: event.g4_doorbell_pro_doorbell
                 icon: mdi:doorbell
-              - entity: light.front_door_light
+              - entity: switch.licht_voordeur
                 icon: mdi:lightbulb
           - type: horizontal-stack
             cards:
               - type: tile
-                entity: event.g4_doorbell_pro_ring
+                entity: event.g4_doorbell_pro_doorbell
                 name: Doorbell — last ring
               - type: tile
-                entity: light.front_door_light
+                entity: switch.licht_voordeur
                 name: Front door light
 
       # ── Network ───────────────────────────────────────────
@@ -37,23 +37,23 @@ views:
               - type: entities
                 title: Dream Router
                 entities:
-                  - entity: sensor.udm_uptime
+                  - entity: sensor.dream_router_uptime
                     name: Uptime
-                  - entity: sensor.udm_wan_ip
-                    name: WAN IP
+                  - entity: sensor.dream_router_state
+                    name: State
               - type: entities
-                title: AP 1
+                title: U6 AP
                 entities:
-                  - entity: sensor.ap_1_clients
-                    name: Clients
-                  - entity: sensor.ap_1_uptime
+                  - entity: sensor.u6_state
+                    name: State
+                  - entity: sensor.u6_uptime
                     name: Uptime
               - type: entities
-                title: AP 2
+                title: U7 Lite AP
                 entities:
-                  - entity: sensor.ap_2_clients
-                    name: Clients
-                  - entity: sensor.ap_2_uptime
+                  - entity: sensor.u7_lite_state
+                    name: State
+                  - entity: sensor.u7_lite_uptime
                     name: Uptime
 
       # ── Media ─────────────────────────────────────────────
@@ -62,4 +62,4 @@ views:
           - type: markdown
             content: "## 🎵 Media"
           - type: media-control
-            entity: media_player.sonos_beam
+            entity: media_player.living_room
