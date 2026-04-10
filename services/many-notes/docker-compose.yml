@@ -14,7 +14,7 @@ services:
       - './private:/var/www/html/storage/app/private'
       - './typesense:/var/www/html/typesense'
     ports:
-      - 8012:8080
+      - ${PORT:-8012}:8080
     labels:
       - homepage.group=Tools
       - homepage.name=Notes
