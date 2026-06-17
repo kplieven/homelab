@@ -17,4 +17,5 @@ services:
       - homepage.name=Stirling PDF
       - homepage.icon=stirling-pdf
       - homepage.href=${URL}
+    mem_limit: 1500m
     restart: unless-stopped
