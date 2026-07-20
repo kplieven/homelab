@@ -1,0 +1,76 @@
+version: "1"
+
+global:
+  restic-binary: /usr/local/bin/restic   # secure_path may exclude /usr/local; be explicit
+  priority: low
+  ionice: true
+  ionice-class: 2
+  ionice-level: 7
+  restic-stale-lock-age: 2h
+
+default:
+  repository: "/mnt/ssd/restic"
+  password-file: /etc/restic/repo.pass
+  initialize: false
+
+homelab:
+  inherit: default
+  backup:
+    schedule: "*-*-* 01:30:00"
+    schedule-permission: system
+    schedule-lock-wait: 15m
+    run-before:
+      - /usr/local/sbin/restic-guard.sh
+      - /usr/local/sbin/homelab-dump.sh
+    source:
+      - HOMELAB_DIR
+    exclude-file: /etc/restic/homelab-excludes.txt
+    tag:
+      - homelab
+    exclude-caches: true
+    one-file-system: true      # never cross onto /mnt/ssd even if an .env points there
+    run-after:
+      - 'curl -fsS -m 10 --retry 3 HC_URL/ping/HC_HOMELAB'
+    run-after-fail:
+      - 'curl -fsS -m 10 --retry 3 --data-raw "$ERROR_STDERR" HC_URL/ping/HC_HOMELAB/fail'
+  retention:
+    after-backup: true
+    prune: false
+    tag: true
+    host: true
+    path: true
+    keep-last: 3
+    keep-daily: 7
+    keep-weekly: 4
+    keep-monthly: 12
+    keep-yearly: 3
+
+# Copies every snapshot not yet present on the VPS. New sources/tags are picked up
+# automatically; there is nothing to add here when you back up a new service.
+offsite:
+  inherit: default
+  copy:
+    schedule: "*-*-* 02:30:00"
+    schedule-permission: system
+    initialize: false
+    repository: "rest:http://REST_USER:REST_PASS@127.0.0.1:8000/repo"
+    password-file: /etc/restic/repo.pass
+    run-after:
+      - 'curl -fsS -m 10 --retry 3 HC_URL/ping/HC_OFFSITE'
+    run-after-fail:
+      - 'curl -fsS -m 10 --retry 3 --data-raw "$ERROR_STDERR" HC_URL/ping/HC_OFFSITE/fail'
+
+maintenance:
+  inherit: default
+  check:
+    schedule: "Sun *-*-* 03:00:00"
+    schedule-permission: system
+    read-data-subset: "1/7"
+    run-after:
+      - 'curl -fsS -m 10 --retry 3 HC_URL/ping/HC_CHECK'
+    run-after-fail:
+      - 'curl -fsS -m 10 --retry 3 --data-raw "$ERROR_STDERR" HC_URL/ping/HC_CHECK/fail'
+  prune:
+    schedule: "Sun *-*-* 04:00:00"
+    schedule-permission: system
+

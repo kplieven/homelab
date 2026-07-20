@@ -1,0 +1,39 @@
+# Raw database dirs — REPLACED by dumps in each service's db-dump/. Named explicitly,
+# never by wildcard: a wildcard would silently sweep up a future service's DB dir that
+# has no dump behind it (the pairing rule).
+HOMELAB_DIR/services/linkwarden/pgdata
+HOMELAB_DIR/services/immich/postgres
+HOMELAB_DIR/services/affine/postgres
+HOMELAB_DIR/services/mealie/database
+HOMELAB_DIR/services/komodo/db
+HOMELAB_DIR/services/paperless-ngx/database
+HOMELAB_DIR/services/your-spotify/database
+
+# Live SQLite files — replaced by .backup output in db-dump/. -wal/-shm are meaningless
+# without their db and harmful to restore beside a dump.
+**/*.sqlite3
+**/*.sqlite
+**/*.db
+**/*.db-wal
+**/*.db-shm
+**/*.sqlite3-wal
+**/*.sqlite3-shm
+
+# Re-include the dumps. MUST come after the SQLite patterns above, or **/*.db excludes
+# the very dumps those rules exist to make room for.
+!HOMELAB_DIR/services/*/db-dump/**
+
+# Regenerable caches and indexes.
+HOMELAB_DIR/services/immich/model-cache
+HOMELAB_DIR/services/linkwarden/meili_data
+HOMELAB_DIR/services/many-notes/typesense
+HOMELAB_DIR/services/*/cache
+HOMELAB_DIR/services/media-stack/*/metadata
+
+# Noise.
+**/*.tmp
+**/logs/
+**/*.log
+**/tmp/
+**/*.sock
+

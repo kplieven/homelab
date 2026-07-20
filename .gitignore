@@ -27,9 +27,11 @@
 **/pipeline/
 **/trainingData/
 **.db
+**.sqlite
 
-# Backup scripts
-**/backup.sh
-!**/backup.sh.example
+# Backup db dumps
+**/db-dump
+**/*.tmp
+
 **/import-new-books.sh
 !**/import-new-books.sh.example
