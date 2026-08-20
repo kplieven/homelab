@@ -182,6 +182,32 @@ cd services/SERVICE_NAME
 docker-compose pull && docker-compose up -d
 ```
 
+#### Disable a Service
+
+A service is skipped by `update-and-run-containers.sh` when a `.disabled` file
+exists in its directory. Use this when you want a container stopped and *not*
+brought back up by the next update run.
+
+```bash
+# Stop it and mark it disabled (optionally with a reason)
+cd services/SERVICE_NAME
+docker-compose down
+echo "paused until new disk arrives" > .disabled
+
+# Re-enable
+rm services/SERVICE_NAME/.disabled
+./scripts/update-and-run-containers.sh
+
+# See which services are enabled/disabled
+./scripts/update-and-run-containers.sh --list
+
+# Bring down stacks that are disabled but still running
+./scripts/update-and-run-containers.sh --stop-disabled
+```
+
+Commit the `.disabled` file so the repo keeps describing the intended state of
+the server. Any text inside the file is shown as the reason in `--list` output.
+
 #### Monitor System Health
 ```bash
 # Check all running containers
