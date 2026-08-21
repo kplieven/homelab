@@ -17,15 +17,15 @@ Your Spotify is a self-hosted dashboard for visualizing your Spotify listening s
 
 The `.env.example` file defines the following variables:
 
-| Variable         | Description                                                      |
-| :--------------- | :---------------------------------------------------------------|
-| `CLIENT_URL`     | The URL where the web client will be accessible.                 |
-| `CLIENT_PORT`    | Port for the web client (default: 9401).                        |
-| `SERVER_URL`     | The URL where the backend server will be accessible.             |
-| `SERVER_PORT`    | Port for the backend server (default: 9400).                    |
-| `SPOTIFY_PUBLIC` | Your Spotify application Client ID (from Spotify Developer).     |
+| Variable | Description |
+| :-- | :-- |
+| `CLIENT_URL` | The URL where the web client will be accessible. |
+| `CLIENT_PORT` | Port for the web client (default: 9401). |
+| `SERVER_URL` | The URL where the backend server will be accessible. |
+| `SERVER_PORT` | Port for the backend server (default: 9400). |
+| `SPOTIFY_PUBLIC` | Your Spotify application Client ID (from Spotify Developer). |
 | `SPOTIFY_SECRET` | Your Spotify application Client Secret (from Spotify Developer). |
-| `HOMEPAGE_URL`   | The URL that Homepage will link to for Your Spotify access.      |
+| `HOMEPAGE_URL` | The URL that Homepage will link to for Your Spotify access. |
 
 
 ---
