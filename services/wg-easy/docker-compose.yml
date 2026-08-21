@@ -33,7 +33,7 @@ services:
       - homepage.group=Security
       - homepage.name=Wireguard
       - homepage.icon=wireguard
-      - homepage.href=${HOMEPAGE_URL}
+      - homepage.href=${URL}
 
 networks:
   wg:
