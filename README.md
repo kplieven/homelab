@@ -66,12 +66,12 @@ homelab/
 │   ├── caddy/                          # Reverse proxy & SSL termination
 │   ├── calibre/                        # E-book management
 │   ├── filebrowser/                    # Web-based file manager
+│   ├── forgejo/                        # Self-hosted Git forge
 │   ├── home-assistant/                 # Home automation platform
 │   ├── homepage/                       # Dashboard/homepage
 │   ├── immich/                         # Photo management & backup
 │   ├── komodo/                         # Docker container management
 │   ├── linkwarden/                     # Bookmark manager
-│   ├── many-notes/                     # Note-taking and sync service
 │   ├── mealie/                         # Recipe management
 │   ├── media-stack/                    # Combined media automation stack
 │   │   ├── audiobookshelf/             # Audiobook server & player
@@ -85,6 +85,7 @@ homelab/
 │   │   ├── radarr/                     # Movie collection manager
 │   │   ├── sonarr/                     # TV show collection manager
 │   │   └── gluetun/                    # VPN container for downloaders
+│   ├── minecraft-server/               # Minecraft Java Edition server
 │   ├── pairdrop/                       # Local file sharing
 │   ├── paperless-ngx/                  # Document management system
 │   ├── stirling-pdf/                   # PDF manipulation tools
@@ -137,8 +138,8 @@ homelab/
 | Service | Purpose | Port | Status |
 |---------|---------|------|--------|
 | [Affine](services/affine/) | Docs and whiteboards | - | ✅ Production |
+| [Forgejo](services/forgejo/) | Self-hosted Git forge | 3005, 222 (ssh) | ✅ Production |
 | [Linkwarden](services/linkwarden/) | Bookmark manager | 3333 | ✅ Production |
-| [Many Notes](services/many-notes/) | Note-taking & sync | 8012 | ✅ Production |
 | [Mealie](services/mealie/) | Recipe management | 9925 | ✅ Production |
 
 ### 📚 E-books
@@ -163,6 +164,11 @@ homelab/
 |---------|---------|------|--------|
 | [Babybuddy](services/babybuddy/) | Baby tracking | 1234 | ✅ Production |
 
+### 🎮 Games
+| Service | Purpose | Port | Status |
+|---------|---------|------|--------|
+| [Minecraft](services/minecraft-server/) | Minecraft Java Edition server | 25565 | ✅ Production |
+
 ### �📸 Photos
 | Service | Purpose | Port | Status |
 |---------|---------|------|--------|
@@ -179,7 +185,7 @@ homelab/
 
 # Update specific service
 cd services/SERVICE_NAME
-docker-compose pull && docker-compose up -d
+docker compose pull && docker compose up -d
 ```
 
 #### Disable a Service
@@ -191,7 +197,7 @@ brought back up by the next update run.
 ```bash
 # Stop it and mark it disabled (optionally with a reason)
 cd services/SERVICE_NAME
-docker-compose down
+docker compose down
 echo "paused until new disk arrives" > .disabled
 
 # Re-enable
@@ -217,7 +223,7 @@ docker ps
 docker stats
 
 # Check specific service logs
-docker-compose -f services/SERVICE_NAME/docker-compose.yml logs -f
+docker compose -f services/SERVICE_NAME/docker-compose.yml logs -f
 ```
 
 ### Backup Management
@@ -367,7 +373,7 @@ PermitRootLogin no
 #### Services Won't Start
 1. **Check Docker daemon**: `sudo systemctl status docker`
 2. **Verify permissions**: `ls -la services/`
-3. **Check logs**: `docker-compose logs SERVICE_NAME`
+3. **Check logs**: `docker compose logs SERVICE_NAME`
 4. **Validate configuration**: Review `.env` files
 
 #### Network Connectivity Issues
@@ -390,10 +396,10 @@ PermitRootLogin no
 docker ps -a
 
 # Service-specific logs with timestamps
-docker-compose -f services/SERVICE_NAME/docker-compose.yml logs -t --tail=100
+docker compose -f services/SERVICE_NAME/docker-compose.yml logs -t --tail=100
 
 # Real-time log monitoring
-docker-compose -f services/SERVICE_NAME/docker-compose.yml logs -f
+docker compose -f services/SERVICE_NAME/docker-compose.yml logs -f
 ```
 
 ## 📚 Documentation
@@ -405,14 +411,15 @@ docker-compose -f services/SERVICE_NAME/docker-compose.yml logs -f
 - [Caddy Configuration Guide](services/caddy/README.md)
 - [Calibre Setup](services/calibre/README.md)
 - [File Browser Setup](services/filebrowser/README.md)
+- [Forgejo Setup](services/forgejo/README.md)
 - [Home Assistant Configuration](services/home-assistant/README.md)
 - [Homepage Setup](services/homepage/README.md)
 - [Immich Setup](services/immich/README.md)
 - [Komodo Setup](services/komodo/README.md)
 - [Linkwarden Setup](services/linkwarden/README.md)
-- [Many Notes Setup](services/many-notes/README.md)
 - [Mealie Setup](services/mealie/README.md)
 - [Media Stack Setup Guide](services/media-stack/README.md)
+- [Minecraft Server Setup](services/minecraft-server/README.md)
 - [PairDrop Setup](services/pairdrop/README.md)
 - [Paperless-NGX Documentation](services/paperless-ngx/README.md)
 - [Stirling PDF Setup](services/stirling-pdf/README.md)
