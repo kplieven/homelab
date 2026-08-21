@@ -9,12 +9,18 @@ services:
     environment:
       - USER_UID=1000
       - USER_GID=1000
-    restart: always
+      - TZ=${TZ}
+    restart: unless-stopped
+    labels:
+      - homepage.group=Productivity
+      - homepage.name=Forgejo
+      - homepage.icon=forgejo
+      - homepage.href=${URL}
     networks:
       - forgejo
     volumes:
-      - ./data:/data
-      - /etc/localtime:/etc/localtime:ro
+      - './data:/data'
+      - '/etc/localtime:/etc/localtime:ro'
     ports:
-      - '3005:3000'
-      - '222:22'
+      - '${PORT:-3005}:3000'
+      - '${SSH_PORT:-222}:22'
