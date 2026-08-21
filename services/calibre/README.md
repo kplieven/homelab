@@ -29,6 +29,7 @@ The `.env.example` file defines the following variables:
 | `CALIBRE_WEB_USERNAME` | Username for Calibre-Web, used by the homepage widget for authentication. |
 | `CALIBRE_WEB_PASSWORD` | Password for Calibre-Web, used by the homepage widget for authentication. |
 | `PATH_TO_DATA` | Path on your host where your Calibre library and ebook files are stored. |
+| `TZ` | Timezone for the container, as a TZ identifier (e.g. `Etc/UTC`). |
 
 
 ---

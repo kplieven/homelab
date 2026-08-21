@@ -29,6 +29,7 @@ The `.env.example` file should define the following variables:
 | `POSTGRES_SERVER` | The PostgreSQL server hostname. |
 | `POSTGRES_PORT` | The PostgreSQL server port. |
 | `POSTGRES_DB` | The PostgreSQL database name. |
+| `TZ` | Timezone for the container, as a TZ identifier (e.g. `Etc/UTC`). |
 
 
 ---

@@ -5,7 +5,7 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Brussels
+      - TZ=${TZ}
       - HARDCOVER_TOKEN=${HARDCOVER_API_KEY}
       - NETWORK_SHARE_MODE=false
       - CWA_PORT_OVERRIDE=8083

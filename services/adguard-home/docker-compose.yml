@@ -30,7 +30,7 @@ services:
       - homepage.widget.username=${USERNAME}
       - homepage.widget.password=${PASSWORD}
     environment:
-      - TZ=Europe/Brussels
+      - TZ=${TZ}
     networks:
       - adguard_net
 

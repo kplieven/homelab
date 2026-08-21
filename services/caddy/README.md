@@ -25,6 +25,7 @@ The `.env.example` file defines the following variables:
 | `HOMEPAGE_WIDGET_URL` | URL used by the Caddy homepage widget (e.g., `http://192.168.1.100:2019`). |
 | `DOMAIN` | Your main domain name (e.g., `example.com` or `homelab.local`). |
 | `CF_API_KEY` | Cloudflare API key for DNS-based TLS certificate management (only needed for public domains). |
+| `STEEL_DESIGN_DIST_PATH` | Host path to the steel-design frontend build output, served as a static site. |
 
 
 ---

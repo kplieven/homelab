@@ -8,6 +8,7 @@ services:
       - './Caddyfile:/etc/caddy/Caddyfile'  # Mount the Caddyfile
       - './data:/data'  # Store Caddy data (e.g., certificates)
       - './config:/config'  # Store additional configuration if needed
+      - '${STEEL_DESIGN_DIST_PATH}:/srv/steel-design-crm-frontend'
     env_file: '.env'
     ports:
       - 80:80                 # HTTP

@@ -15,7 +15,7 @@ services:
       ALLOW_SIGNUP: "false"
       PUID: 1000
       PGID: 1000
-      TZ: Europe/Brussels
+      TZ: ${TZ}
       BASE_URL: ${URL}
       # Database Settings
       DB_ENGINE: postgres

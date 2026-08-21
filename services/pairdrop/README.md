@@ -23,6 +23,7 @@ The `.env.example` file should define the following variables:
 | :-- | :-- |
 | `URL` | The URL that will be used to access PairDrop. |
 | `PORT` | Port for the PairDrop web interface (default: 3000). |
+| `TZ` | Timezone for the container, as a TZ identifier (e.g. `Etc/UTC`). |
 
 
 ---

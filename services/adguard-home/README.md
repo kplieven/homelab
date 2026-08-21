@@ -27,6 +27,7 @@ The `.env.example` file should define the following variables:
 | `PORT` | Port the Filebrowser service will be exposed on (default: 3009). |
 | `USERNAME` | Username for AdGuard Home authentication (for Homepage widget). |
 | `PASSWORD` | Password for AdGuard Home authentication (for Homepage widget). |
+| `TZ` | Timezone for the container, as a TZ identifier (e.g. `Etc/UTC`). |
 
 
 ---
@@ -69,4 +70,4 @@ docker compose up -d
 - To enable DHCP server, configure it through the web interface after initial setup.
 - For optimal security, change the default admin password during initial setup.
 - Homepage widget integration shows query statistics and blocked domains.
-- Timezone is set to Europe/Brussels; adjust in `docker-compose.yml` if needed.
+- Timezone comes from `TZ` in your `.env`; set it to your own TZ identifier.

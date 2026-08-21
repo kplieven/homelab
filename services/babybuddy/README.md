@@ -22,6 +22,7 @@ The `.env.example` file should define the following variables:
 | :-- | :-- |
 | `URL` | The URL that the homepage will link to. |
 | `PORT` | Port the Babybuddy service will be exposed on (default: 1234). |
+| `TZ` | Timezone for the container, as a TZ identifier (e.g. `Etc/UTC`). |
 
 
 ---
@@ -56,7 +57,7 @@ docker compose up -d
 
 - Configuration data is stored in the `./config` directory.
 - All data persists across container restarts.
-- Timezone is set to Europe/Brussels; adjust in `docker-compose.yml` if needed.
+- Timezone comes from `TZ` in your `.env`; set it to your own TZ identifier.
 - Homepage integration is configured via Docker labels.
 - Default credentials may need to be set on first login.
 - The application supports timers for tracking ongoing activities like feedings and sleep.

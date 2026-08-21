@@ -5,7 +5,7 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Brussels
+      - TZ=${TZ}
     volumes:
       - './prowlarr/config:/config'
     ports:
@@ -25,12 +25,12 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Brussels
+      - TZ=${TZ}
     ports:
       - 8989:8989
     volumes:
       - './sonarr/config:/config'
-      - '/mnt/ssd/server:/data'
+      - '${MEDIA_ROOT}:/data'
     labels:
       - homepage.group=Media
       - homepage.name=Sonarr
@@ -46,12 +46,12 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Brussels
+      - TZ=${TZ}
     ports:
       - 7878:7878
     volumes:
       - './radarr/config:/config'
-      - '/mnt/ssd/server:/data'
+      - '${MEDIA_ROOT}:/data'
     labels:
       - homepage.group=Media
       - homepage.name=Radarr
@@ -67,10 +67,10 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Brussels
+      - TZ=${TZ}
     volumes:
       - './bazarr/config:/config'
-      - '/mnt/ssd/server:/data'
+      - '${MEDIA_ROOT}:/data'
     ports:
       - 6767:6767
     labels:
@@ -88,12 +88,12 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Brussels
+      - TZ=${TZ}
     ports:
       - 8096:8096
     volumes:
       - './jellyfin/config:/config'
-      - '/mnt/ssd/server/media:/data/media'
+      - '${MEDIA_ROOT}/media:/data/media'
     deploy:
       resources:
         reservations:
@@ -159,11 +159,11 @@ services:
       - PUID=1000
       - PGID=1000
       - UMASK=002
-      - TZ=Europe/Brussels
+      - TZ=${TZ}
       - WEBUI_PORT=8080
     volumes:
       - './qbittorrent/config:/config'
-      - '/mnt/ssd/server/torrents:/data/torrents'
+      - '${MEDIA_ROOT}/torrents:/data/torrents'
     labels:
       - homepage.group=Download
       - homepage.name=QBitTorrent
@@ -184,11 +184,11 @@ services:
       - PUID=1000
       - PGID=1000
       - UMASK=002
-      - TZ=Europe/Brussels
+      - TZ=${TZ}
       - WEBUI_PORT=8089
     volumes:
       - './mam/config:/config'
-      - '/mnt/ssd/server:/data'
+      - '${MEDIA_ROOT}:/data'
     labels:
       - homepage.group=Download
       - homepage.name=MAM
@@ -207,7 +207,7 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Brussels
+      - TZ=${TZ}
     restart: unless-stopped
   seerr:
     image: ghcr.io/seerr-team/seerr:latest
@@ -215,7 +215,7 @@ services:
     container_name: seerr
     environment:
       - LOG_LEVEL=debug
-      - TZ=Europe/Brussels
+      - TZ=${TZ}
       - PORT=5055 #optional
     ports:
       - 5055:5055
@@ -235,11 +235,11 @@ services:
     ports:
       - 13378:80
     volumes:
-      - '/mnt/ssd/server/torrents/audiobooks:/audiobooks'
+      - '${MEDIA_ROOT}/torrents/audiobooks:/audiobooks'
       - './audiobookshelf/config:/config'
       - './audiobookshelf/metadata:/metadata'
     environment:
-      - TZ=Europe/Brussels
+      - TZ=${TZ}
     labels:
       - homepage.group=Books
       - homepage.name=Audiobookshelf

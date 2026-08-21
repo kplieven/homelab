@@ -103,6 +103,8 @@ Each service has its own configuration. A few common ones:
 | :-- | :-- |
 | `<SERVICE>_API_KEY` | The API key for the corresponding service (for Homepage widget) |
 | `<SERVICE>_URL` | The URL that the homepage will link to for each service. |
+| `TZ` | Timezone for all containers, as a TZ identifier (e.g. `Etc/UTC`). |
+| `MEDIA_ROOT` | Host path to the bulk media library; `media/` and `torrents/` live under it. |
 
 ### VPN (Gluetun)
 
