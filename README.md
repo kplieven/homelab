@@ -296,6 +296,33 @@ Caddy automatically handles:
 - **Authorization**: Service-level authentication where supported
 - **Secret Management**: Environment files excluded from Git
 
+### Keeping local values out of the remote
+
+Everything committed here uses **generic placeholders** — `HOMELAB_DIR`, `HC_URL`,
+`REST_USER`/`REST_PASS`, empty coordinates. The real values live only in the working
+tree, which means the repo is permanently dirty by design and `git add -A` is dangerous.
+
+A `pre-commit` hook guards against that. It is not active on a fresh clone — enable it
+once per machine:
+
+```sh
+git config core.hooksPath scripts/hooks
+```
+
+It rejects any staged file containing a private key, a bcrypt hash, restic credentials,
+a healthchecks.io ping UUID, an absolute `/home/<user>/` path, real geo coordinates, or a
+Telegram token — and refuses to stage `.env`, `*.db`, or exported user documents at all.
+
+Values specific to *your* machine (hostnames, your own domain, your email) go in
+`scripts/hooks/local-patterns.txt` — one regex per line. That file is gitignored, so the
+literals never reach the remote; the committed hook only ever matches by shape.
+
+Override for a deliberate exception:
+
+```sh
+ALLOW_LOCAL_VALUES=1 git commit ...
+```
+
 ### Security Best Practices
 1. **Use strong passwords** for all service accounts
 2. **Enable 2FA** where available (Vaultwarden, etc.)

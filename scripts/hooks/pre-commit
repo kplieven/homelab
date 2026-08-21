@@ -1,0 +1,86 @@
+#!/bin/bash
+# Blocks machine-specific values and private data from entering a commit.
+#
+# This repo keeps generic placeholders committed (HOMELAB_DIR, HC_URL, REST_USER...)
+# while the working tree holds the real values. That only works if the real values can
+# never be staged by accident -- `git add -A` and `git commit -a` do not know the
+# difference. This hook is that guard.
+#
+# NOTE: this file is committed, so it must never contain a literal private value.
+# It matches by SHAPE only. Machine-specific literals belong in the gitignored
+# scripts/hooks/local-patterns.txt (one extended regex per line, # for comments).
+#
+# Bypass for a deliberate exception:  ALLOW_LOCAL_VALUES=1 git commit ...
+set -uo pipefail
+
+[[ "${ALLOW_LOCAL_VALUES:-0}" == 1 ]] && exit 0
+
+RED=$'\033[31m'; YEL=$'\033[33m'; RST=$'\033[0m'
+[[ -t 2 ]] || { RED=''; YEL=''; RST=''; }
+
+# --- Content patterns: shape-based, no literals ------------------------------
+declare -a PATTERNS=(
+  '\$2[aby]\$[0-9]{2}\$[./A-Za-z0-9]{53}'          # bcrypt password hash
+  'hc-ping\.com/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-'    # healthchecks.io ping UUID
+  'rest:https?://[^:/@[:space:]]+:[^@[:space:]]+@' # restic REST repo w/ inline creds
+  '-----BEGIN ([A-Z ]+ )?PRIVATE KEY-----'         # private key material
+  '/home/[a-z0-9_-]+/'                             # absolute path into a user home
+  '(latitude|longitude):[[:space:]]*-?[0-9]+\.[0-9]+' # real geo coordinates
+  '[0-9]{8,10}:[A-Za-z0-9_-]{32,}'                  # telegram bot token
+)
+declare -a LABELS=(
+  'bcrypt password hash'
+  'healthchecks.io ping UUID'
+  'restic REST repo with inline credentials'
+  'private key material'
+  'absolute path into a user home directory'
+  'real geographic coordinates'
+  'telegram bot token'
+)
+
+# --- Path patterns: files that must never be committed at all ----------------
+PATH_DENY='(^|/)\.env$|paperless-ngx/export/|meili_data/|ferretdb-state/|mam-seedboxapi/|\.db$'
+
+# --- Machine-local literals (gitignored, optional) ---------------------------
+LOCAL_FILE="$(git rev-parse --show-toplevel)/scripts/hooks/local-patterns.txt"
+declare -a LOCAL=()
+if [[ -f "$LOCAL_FILE" ]]; then
+  while IFS= read -r line; do
+    [[ -z "${line// }" || "$line" == \#* ]] && continue
+    LOCAL+=("$line")
+  done < "$LOCAL_FILE"
+fi
+
+fail=0
+report() {  # file, label, sample
+  printf '%s  %s%s\n' "$RED" "BLOCKED: $2" "$RST" >&2
+  printf '    file: %s\n' "$1" >&2
+  [[ -n "${3:-}" ]] && printf '    match: %s\n' "${3:0:120}" >&2
+  fail=1
+}
+
+while IFS= read -r -d '' file; do
+  if [[ "$file" =~ $PATH_DENY ]]; then
+    report "$file" "file must not be committed (private data or local state)"
+    continue
+  fi
+
+  blob=$(git show ":$file" 2>/dev/null) || continue
+
+  for i in "${!PATTERNS[@]}"; do
+    hit=$(printf '%s' "$blob" | grep -aoEm1 -e "${PATTERNS[$i]}" 2>/dev/null) || continue
+    [[ -n "$hit" ]] && report "$file" "${LABELS[$i]}" "$hit"
+  done
+
+  for pat in "${LOCAL[@]}"; do
+    hit=$(printf '%s' "$blob" | grep -aoEim1 -e "$pat" 2>/dev/null) || continue
+    [[ -n "$hit" ]] && report "$file" "machine-specific value (local-patterns.txt)" "$hit"
+  done
+done < <(git diff --cached --name-only --diff-filter=ACM -z)
+
+if (( fail )); then
+  printf '\n%sCommit aborted.%s The remote keeps generic placeholders; these values are local.\n' "$YEL" "$RST" >&2
+  printf 'Unstage the file, or override deliberately with:  ALLOW_LOCAL_VALUES=1 git commit ...\n' >&2
+  exit 1
+fi
+exit 0

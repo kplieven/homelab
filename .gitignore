@@ -43,5 +43,8 @@ services/paperless-ngx/export/
 **/ferretdb-state/
 **/mam-seedboxapi/tmp/
 
+# Local-only pre-commit patterns (holds this machine's literal private values).
+scripts/hooks/local-patterns.txt
+
 # Editor / script backups
 *.bak
