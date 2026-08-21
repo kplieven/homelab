@@ -1,20 +1,22 @@
 services:
   postgres:
+    container_name: linkwarden_postgres
     image: postgres:16-alpine
     env_file: docker-compose.env
-    restart: always
+    restart: unless-stopped
     volumes:
-      - ./pgdata:/var/lib/postgresql/data
+      - './pgdata:/var/lib/postgresql/data'
   linkwarden:
+    container_name: linkwarden
     env_file: docker-compose.env
     environment:
       - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
-    restart: always
+    restart: unless-stopped
     image: ghcr.io/linkwarden/linkwarden:latest
     ports:
-      - "${PORT:-3333}:3000"
+      - '${PORT:-3333}:3000'
     volumes:
-      - ./data:/data/data
+      - './data:/data/data'
     depends_on:
       - postgres
       - meilisearch
@@ -24,9 +26,10 @@ services:
       - homepage.icon=linkwarden
       - homepage.href=${URL}
   meilisearch:
+    container_name: linkwarden_meilisearch
     image: getmeili/meilisearch:v1.12.8
-    restart: always
+    restart: unless-stopped
     env_file:
       - docker-compose.env
     volumes:
-      - ./meili_data:/meili_data
+      - './meili_data:/meili_data'

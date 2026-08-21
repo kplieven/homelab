@@ -9,7 +9,7 @@ services:
     volumes:
       - './prowlarr/config:/config'
     ports:
-      - 9696:9696
+      - '9696:9696'
     labels:
       - homepage.group=Media
       - homepage.name=Prowlarr
@@ -27,7 +27,7 @@ services:
       - PGID=1000
       - TZ=${TZ}
     ports:
-      - 8989:8989
+      - '8989:8989'
     volumes:
       - './sonarr/config:/config'
       - '${MEDIA_ROOT}:/data'
@@ -48,7 +48,7 @@ services:
       - PGID=1000
       - TZ=${TZ}
     ports:
-      - 7878:7878
+      - '7878:7878'
     volumes:
       - './radarr/config:/config'
       - '${MEDIA_ROOT}:/data'
@@ -72,7 +72,7 @@ services:
       - './bazarr/config:/config'
       - '${MEDIA_ROOT}:/data'
     ports:
-      - 6767:6767
+      - '6767:6767'
     labels:
       - homepage.group=Media
       - homepage.name=Bazarr
@@ -90,7 +90,7 @@ services:
       - PGID=1000
       - TZ=${TZ}
     ports:
-      - 8096:8096
+      - '8096:8096'
     volumes:
       - './jellyfin/config:/config'
       - '${MEDIA_ROOT}/media:/data/media'
@@ -124,12 +124,12 @@ services:
       - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
       - SERVER_COUNTRIES=Switzerland
     ports:
-      - 8005:8000/tcp
-      - 8888:8888/tcp
-      - 8388:8388/tcp
-      - 8388:8388/udp
-      - 8080:8080  # For qBittorrent web UI
-      - 8089:8089  # For qBittorrent mam web UI
+      - '8005:8000/tcp'
+      - '8888:8888/tcp'
+      - '8388:8388/tcp'
+      - '8388:8388/udp'
+      - '8080:8080'  # For qBittorrent web UI
+      - '8089:8089'  # For qBittorrent mam web UI
     labels:
       - homepage.group=Download
       - homepage.name=VPN
@@ -203,7 +203,7 @@ services:
     container_name: flaresolverr
     image: ghcr.io/flaresolverr/flaresolverr:latest
     ports:
-      - 8191:8191
+      - '8191:8191'
     environment:
       - PUID=1000
       - PGID=1000
@@ -218,7 +218,7 @@ services:
       - TZ=${TZ}
       - PORT=5055 #optional
     ports:
-      - 5055:5055
+      - '5055:5055'
     volumes:
       - './jellyseerr/config:/app/config'
     labels:
@@ -231,9 +231,10 @@ services:
       - homepage.widget.key=${JELLYSEERR_API_KEY}
     restart: unless-stopped
   audiobookshelf:
+    container_name: audiobookshelf
     image: ghcr.io/advplyr/audiobookshelf:latest
     ports:
-      - 13378:80
+      - '13378:80'
     volumes:
       - '${MEDIA_ROOT}/torrents/audiobooks:/audiobooks'
       - './audiobookshelf/config:/config'

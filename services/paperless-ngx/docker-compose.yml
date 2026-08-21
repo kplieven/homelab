@@ -32,22 +32,25 @@
 
 services:
   broker:
+    container_name: paperless_broker
     image: docker.io/library/redis:7
     restart: unless-stopped
     volumes:
-      - redisdata:/data
+      - 'redisdata:/data'
 
   db:
+    container_name: paperless_db
     image: docker.io/library/postgres:16
     restart: unless-stopped
     volumes:
       - './database:/var/lib/postgresql/data'
     environment:
-      POSTGRES_DB: paperless
-      POSTGRES_USER: paperless
-      POSTGRES_PASSWORD: paperless
+      - POSTGRES_DB=paperless
+      - POSTGRES_USER=paperless
+      - POSTGRES_PASSWORD=paperless
 
   webserver:
+    container_name: paperless_webserver
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
     restart: unless-stopped
     depends_on:
@@ -56,7 +59,7 @@ services:
       - gotenberg
       - tika
     ports:
-      - "${PORT:-1111}:8000"
+      - '${PORT:-1111}:8000'
     volumes:
       - './data:/usr/src/paperless/data'
       - './export:/usr/src/paperless/export'
@@ -64,11 +67,11 @@ services:
       - '${PATH_TO_SCANS}:/usr/src/paperless/consume'
     env_file: docker-compose.env
     environment:
-      PAPERLESS_REDIS: redis://broker:6379
-      PAPERLESS_DBHOST: db
-      PAPERLESS_TIKA_ENABLED: 1
-      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg:3000
-      PAPERLESS_TIKA_ENDPOINT: http://tika:9998
+      - PAPERLESS_REDIS=redis://broker:6379
+      - PAPERLESS_DBHOST=db
+      - PAPERLESS_TIKA_ENABLED=1
+      - PAPERLESS_TIKA_GOTENBERG_ENDPOINT=http://gotenberg:3000
+      - PAPERLESS_TIKA_ENDPOINT=http://tika:9998
     labels:
       - homepage.group=Documents
       - homepage.name=Paperless
@@ -80,6 +83,7 @@ services:
 
 
   gotenberg:
+    container_name: paperless_gotenberg
     image: docker.io/gotenberg/gotenberg:8.7
     restart: unless-stopped
 
@@ -91,6 +95,7 @@ services:
       - "--chromium-allow-list=file:///tmp/.*"
 
   tika:
+    container_name: paperless_tika
     image: docker.io/apache/tika:latest
     mem_limit: 1g
     restart: unless-stopped

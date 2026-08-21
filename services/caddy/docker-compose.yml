@@ -11,8 +11,8 @@ services:
       - '${STEEL_DESIGN_DIST_PATH}:/srv/steel-design-crm-frontend'
     env_file: '.env'
     ports:
-      - 80:80                 # HTTP
-      - 443:443               # HTTPS
+      - '80:80'  # HTTP
+      - '443:443'  # HTTPS
       - '${PORT:-2019}:2019'  # Stats
     networks:
       - local_network
