@@ -48,3 +48,8 @@ scripts/hooks/local-patterns.txt
 
 # Editor / script backups
 *.bak
+
+# Personal projects hosted here but developed elsewhere -- not part of this repo.
+services/budkin/
+services/investment-tracker/
+services/steel-design-planner/
