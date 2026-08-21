@@ -25,6 +25,12 @@ The `.env.example` file defines the following variables:
 | `SERVER_IP` | The local IP address of your server (e.g., `192.168.1.100`). |
 | `HOMEPAGE_URL` | The URL that will be used to access the Homepage dashboard (e.g., `http://homelab.local`). |
 | `BACKGROUND_IMAGE_PATH` | Absolute path to an image on your server to use as the dashboard background. |
+| `MEDIA_DISK_PATH` | Host mountpoint shown by the resources widget; bind-mounted read-only at the same path. |
+| `TITLE` | Dashboard title (substituted into `config/settings.yaml`). |
+| `TZ` | Timezone used by the weather widget. |
+| `WEATHER_LABEL` | Location label shown on the weather widget. |
+| `LATITUDE` | Latitude for the weather widget. |
+| `LONGITUDE` | Longitude for the weather widget. |
 
 
 ---

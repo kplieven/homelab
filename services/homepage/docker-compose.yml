@@ -4,6 +4,14 @@ services:
     container_name: homepage
     environment:
       HOMEPAGE_ALLOWED_HOSTS: ${HOMEPAGE_URL},${SERVER_IP}:3001
+      # Substituted into config/*.yaml as {{HOMEPAGE_VAR_*}} -- keeps machine-specific
+      # values (title, mountpoint, timezone, coordinates) out of the committed config.
+      HOMEPAGE_VAR_TITLE: ${TITLE}
+      HOMEPAGE_VAR_MEDIA_DISK_PATH: ${MEDIA_DISK_PATH}
+      HOMEPAGE_VAR_TZ: ${TZ}
+      HOMEPAGE_VAR_WEATHER_LABEL: ${WEATHER_LABEL}
+      HOMEPAGE_VAR_LATITUDE: ${LATITUDE}
+      HOMEPAGE_VAR_LONGITUDE: ${LONGITUDE}
       PUID: 1000
       PGID: 996
     ports:
@@ -12,4 +20,5 @@ services:
       - './config:/app/config'
       - '/run/docker.sock:/var/run/docker.sock:ro'
       - '${BACKGROUND_IMAGE_PATH}:/app/public/images/background.jpg'
+      - '${MEDIA_DISK_PATH}:${MEDIA_DISK_PATH}:ro'
     restart: unless-stopped
