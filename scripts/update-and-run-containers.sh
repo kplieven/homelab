@@ -202,14 +202,14 @@ while IFS= read -r -d '' compose_file; do
         SKIPPED_SERVICES=$((SKIPPED_SERVICES + 1))
 
         # Warn (or act) if the stack is still running despite being disabled
-        running=$(docker-compose ps --services --filter "status=running" 2>/dev/null || true)
+        running=$(docker compose ps --services --filter "status=running" 2>/dev/null || true)
         if [ -n "$running" ]; then
             if [ "$STOP_DISABLED" = true ]; then
                 if [ "$DRY_RUN" = true ]; then
-                    print_status "  Would run: docker-compose down (in $service_dir)"
+                    print_status "  Would run: docker compose down (in $service_dir)"
                 else
                     print_status "  Bringing down disabled stack $service_name..."
-                    if docker-compose down; then
+                    if docker compose down; then
                         print_success "  Stopped $service_name"
                     else
                         print_error "  Failed to stop $service_name"
@@ -234,9 +234,9 @@ while IFS= read -r -d '' compose_file; do
     else
         # Pull latest images
         print_status "  Pulling latest images for $service_name..."
-        if docker-compose pull; then
+        if docker compose pull; then
             print_status "  Restarting $service_name with new images..."
-            if docker-compose up -d; then
+            if docker compose up -d; then
                 print_success "  Successfully updated $service_name"
                 UPDATED_SERVICES=$((UPDATED_SERVICES + 1))
             else
