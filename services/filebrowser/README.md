@@ -39,7 +39,10 @@ cp .env.example .env
 
 3. **Edit `.env`** and fill in your values (see [Environment Variables](#environment-variables)).
 4. **Prepare configuration files**:
-    - Ensure `filebrowser.db` exists (create an empty file if needed).
+    - Create the database file: `touch filebrowser.db`. It is **required** before the
+      first `docker compose up` — without it Docker creates a *directory* at that bind
+      mount and Filebrowser fails to start. It is deliberately not tracked in git: the
+      live database holds usernames and password hashes.
     - Edit `settings.json` to customize Filebrowser settings if desired.
 5. **Run the container** with Docker Compose:
 

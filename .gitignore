@@ -34,3 +34,14 @@
 
 **/import-new-books.sh
 !**/import-new-books.sh.example
+
+# Exported user documents — paperless-ngx dumps real scanned documents here.
+services/paperless-ngx/export/
+
+# Service runtime state not caught by the generic rules above.
+**/meili_data/
+**/ferretdb-state/
+**/mam-seedboxapi/tmp/
+
+# Editor / script backups
+*.bak
