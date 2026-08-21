@@ -27,6 +27,8 @@ The `.env.example` file should define the following variables:
 | `URL` | The URL the Immich instance will be accessible at. |
 | `PORT` | Port the Immich service will be exposed on (default: 2283). |
 | `IMMICH_API_KEY` | Your Immich API token (for Homepage widget). |
+| `IMPORT_LOCATION` | Host folder Immich imports existing photos from. |
+| `TZ` | Timezone for the container, as a TZ identifier (e.g. `Etc/UTC`). |
 
 
 ---
