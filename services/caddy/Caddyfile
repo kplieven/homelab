@@ -167,8 +167,22 @@ links.{$DOMAIN} {
 }
 
 baby.{$DOMAIN} {
-    reverse_proxy {$SERVER_IP}:1234
     import cloudflare
+
+    @cors_preflight method OPTIONS
+    handle @cors_preflight {
+        header Access-Control-Allow-Origin "*"
+        header Access-Control-Allow-Methods "GET, POST, PATCH, PUT, DELETE, OPTIONS"
+        header Access-Control-Allow-Headers "Authorization, Content-Type"
+	header Access-Control-Max-Age "86400"
+	respond 204
+    }
+
+    handle {
+        header Access-Control-Allow-Origin "*"
+        header Access-Control-Allow-Headers "Authorization, Content-Type"
+        reverse_proxy {$SERVER_IP}:1234
+    }
 }
 
 uptime.{$DOMAIN}, status.{$DOMAIN} {
