@@ -46,6 +46,9 @@ services/paperless-ngx/export/
 # Local-only pre-commit patterns (holds this machine's literal private values).
 scripts/hooks/local-patterns.txt
 
+# Secret files (API keys mounted into containers)
+*.secret
+
 # Editor / script backups
 *.bak
 
