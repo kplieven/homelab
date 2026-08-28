@@ -82,5 +82,22 @@ services:
     healthcheck:
       disable: false
 
+  immich-folder-album-creator:
+    container_name: immich_folder_album_creator
+    image: salvoxia/immich-folder-album-creator:latest
+    restart: unless-stopped
+    # Use a UID/GID that has read access to the external libraries
+    user: 1001:1001
+    volumes:
+     # mount needed for .albumprops to work
+     - '${IMPORT_LOCATION}:/external_libs/photos'
+    environment:
+      API_URL: '${URL}/api'
+      # Same key as the Homepage widget, kept in .env so the two cannot drift
+      API_KEY: ${IMMICH_API_KEY}
+      ROOT_PATH: /usr/src/app/import
+      CRON_EXPRESSION: "0 * * * *"
+      TZ: ${TZ}
+
 volumes:
   model-cache:
