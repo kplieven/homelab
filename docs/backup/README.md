@@ -864,11 +864,63 @@ HOMELAB_DIR=HOMELAB_DIR
 
 for script in "$HOMELAB_DIR"/services/*/backup.sh; do
     [[ -x "$script" ]] || continue
-    svc=$(basename "$(dirname "$script")")
-    ( cd "$(dirname "$script")" && ./backup.sh ) || { echo "homelab-dump: $svc/backup.sh failed" >&2; exit 1; }
+    dir=$(dirname "$script")
+    svc=$(basename "$dir")
+
+    # A service disabled with .disabled -- the repo-wide marker honoured by
+    # update-and-run-containers.sh -- has no container left to dump from, so its
+    # backup.sh fails and takes down every service after it in this loop with it. Skip
+    # it. Its raw DB path stays excluded either way, so the snapshot then carries
+    # whatever is already in db-dump/ and nothing else: the two checks below are what
+    # make that safe rather than merely quiet.
+    if [[ -f "$dir/.disabled" ]]; then
+        # Still running means the marker is lying. The database can still be written, so
+        # freezing the dump would let it go stale invisibly. Same probe as
+        # update-and-run-containers.sh, so both agree on what "running" means.
+        running=$(cd "$dir" && docker compose ps --services --filter "status=running" 2>/dev/null || true)
+        [[ -z "$running" ]] || {
+            echo "homelab-dump: $svc is marked .disabled but still running ($(echo "$running" | tr "\n" " " | sed "s/ *$//")); refusing to freeze its dump" >&2
+            exit 1; }
+        # Nothing in db-dump/ means it was disabled before it was ever dumped: its
+        # database is excluded with no dump behind it. That is the unpaired exclusion
+        # the pairing rule exists to prevent, reached from the other direction --
+        # assert-pairing.sh sees the backup.sh and is satisfied, but it never runs.
+        newest=$(find "$dir/db-dump" -maxdepth 1 -type f -printf '%TY-%Tm-%Td %TH:%TM\n' 2>/dev/null | sort -r | head -n1)
+        [[ -n "$newest" ]] || {
+            echo "homelab-dump: $svc is disabled but has no dump in db-dump/; its database is excluded with nothing behind it" >&2
+            exit 1; }
+        reason=$(tr '\n' ' ' < "$dir/.disabled" | sed 's/[[:space:]]*$//')
+        echo "homelab-dump: $svc disabled${reason:+ ($reason)}, keeping its dump from $newest"
+        continue
+    fi
+
+    ( cd "$dir" && ./backup.sh ) || { echo "homelab-dump: $svc/backup.sh failed" >&2; exit 1; }
 done
 echo "homelab-dump: all dumps complete"
 ```
+
+### Disabled services
+
+A service disabled with the repo's `.disabled` marker (see the top-level README) has no
+container left to dump from. Its `backup.sh` fails, and because the orchestrator aborts
+on the first failure, **every service after it alphabetically never gets dumped either** —
+one disabled service silently costs you the whole night's backup. So the loop skips
+disabled services.
+
+Skipping is not free, though. The raw database path stays excluded whether the service
+runs or not, so the snapshot keeps carrying whatever is already in `db-dump/` and nothing
+else. That is correct — a stopped database is not changing, so its last dump is still
+current — but only while two things hold, which is why the skip is guarded rather than
+unconditional:
+
+| Guard | What it catches |
+|---|---|
+| stack must actually be stopped | Marked `.disabled` but still running, usually a manual `docker compose up`. The database can still be written, so a frozen dump goes stale invisibly. |
+| `db-dump/` must be non-empty | Disabled before it was ever dumped. Its database is excluded with no dump behind it — the unpaired-exclusion loss, reached from the direction `assert-pairing.sh` cannot see: the `backup.sh` exists, so the assertion is satisfied, but it never runs. |
+
+Both refuse the backup rather than proceeding. The skip line prints the reason from the
+marker file and the date of the dump being carried forward, so a service disabled for a
+year does not quietly become a year-old dump nobody looked at.
 
 Install it and confirm the assertion catches an unpaired exclusion. Use a throwaway
 directory, **not** a real service: the check is `[[ ! -x services/<svc>/backup.sh ]]`, so
@@ -888,11 +940,14 @@ A directory with no `backup.sh` by construction, so this reads the same at any s
 the build. If a *real* service unexpectedly reports `UNPAIRED`, check the exec bit with
 `ls -l` before suspecting the script — the test is `-x`, not `-e`.
 
-**Known blind spot.** The loop skips lines beginning `**` (they name no service), so the
-global SQLite patterns in [1.8](#18-the-exclude-file) get no pairing check at all. A
-service whose database is a bare `*.sqlite3` file rather than a `database/` directory is
-excluded by those patterns and the assertion cannot see it. That is the pairing rule's
-one uncovered case; see the verify list at the top of this file.
+**Formerly a blind spot.** The first loop skips lines beginning `**` because they name
+no service, which once left the global SQLite patterns in [1.8](#18-the-exclude-file)
+with no pairing check at all — a database that is a bare `*.db` file rather than a
+`database/` directory was excluded by those patterns and invisible to the assertion. The
+second loop closes that by resolving the patterns against the tree. The remaining
+uncovered case is narrower and named: a service that has a `backup.sh` which never
+actually produces a dump. The assertion tests for the script, not for its output; the
+disabled-service check above tests for the output, but only for disabled services.
 
 `restic-guard.sh` refuses to run at all if the repo disk is unmounted — otherwise a
 backup after an unmounted `/mnt/ssd` writes an empty snapshot and retention eventually
