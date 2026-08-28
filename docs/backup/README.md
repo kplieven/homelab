@@ -81,8 +81,9 @@ never become your admin key.
 > backing up is there; everything bulky is reached by an absolute path pointing
 > somewhere else (`/mnt/ssd`).
 
-This is true of the homelab repo today with one exception fixed in [1.6](#16-prepare-the-homelab-repo):
-`wg-easy` uses a named Docker volume for the WireGuard server key and peer configs.
+This is true of the homelab repo today. It had one exception, since fixed in
+[1.6](#16-prepare-the-homelab-repo): `wg-easy` kept the WireGuard server key and peer
+configs in a named Docker volume, where nothing under `services/` could see them.
 The bulk media on `/mnt/ssd` (photos, movies, shows) is explicitly **out of scope**;
 this design covers service configuration and state only.
 
@@ -122,12 +123,14 @@ live homelab tree and must be checked as you go — each is flagged again at its
 - the `vaultwarden backup` subcommand and its output filename (older images lack it).
 - container/DB service names per service (`database` vs `immich_postgres`, `db` vs
   `postgres`) — verified per service with `docker compose config --services`, not guessed.
-- **`assert-pairing.sh` cannot see the global SQLite patterns.** It skips `**` lines, so
-  the pairing rule is unenforced for any service whose database is a bare `*.sqlite3`
-  file rather than a `database/` directory ([1.7](#the-orchestrator-and-the-pairing-assertion)).
-  Resolve `filebrowser`, `babybuddy` and `calibre` against the live tree, then decide
-  whether to name their DB paths explicitly (bringing them under the assertion) or to
-  extend the assertion to check the inverse — every `backup.sh` produces a `db-dump/`.
+- **`assert-pairing.sh` and the global SQLite patterns — RESOLVED.** It used to skip
+  every `**` line, leaving the pairing rule unenforced for any service whose database is
+  a bare `*.db`/`*.sqlite3` file rather than a `database/` directory. It now resolves
+  those patterns against the live tree as well
+  ([1.7](#the-orchestrator-and-the-pairing-assertion)). The first run caught two
+  genuinely unpaired services: `wg-easy`, whose WireGuard server key and peer list were
+  in no snapshot at all, and `adguard-home`. Neither had been noticed by eye in the
+  months they were wrong — which is the whole argument for asserting mechanically.
 - **`dump_mongo` has no content check.** `dump_postgres` greps for the terminator and
   `dump_sqlite_tree` runs `integrity_check`; `dump_mongo` only tests non-empty, so a
   truncated archive passes. Find a validity check for `mongodump --archive` output
@@ -550,6 +553,15 @@ until the day you restore. So exclusions are named **explicitly, never by wildca
 (a wildcard silently sweeps up a future service's DB dir that has no dump), and the
 pairing is asserted **mechanically**, never by eye ([1.7 orchestrator](#the-orchestrator-and-the-pairing-assertion)).
 
+Some databases genuinely cannot be dumped. An embedded engine with no online-dump API —
+bbolt, H2 — yields a consistent copy only with the service stopped, and stopping it can
+cost more than the data is worth: `adguard-home` keeps query statistics in bbolt, and
+dumping them nightly means taking LAN-wide DNS down nightly. For those, the exclusion is
+waived **per file**, in `services/<name>/no-db-dump`, naming the exact paths and the
+reason. A waiver is deliberately not a per-service off switch — a database that appears
+in that service later still fails the assertion — and every waiver prints on every run,
+so it stays a decision on the record instead of becoming a silence.
+
 ### The shared library
 
 All dump logic lives in one place so 19 services cannot become 19 subtly divergent
@@ -716,13 +728,18 @@ The full set — build one pair per row, and **verify the container/DB names wit
 | vaultwarden | special — `/vaultwarden backup`, see below | |
 | home-assistant | `dump_sqlite_tree ./config` | |
 | uptime-kuma | `dump_sqlite_tree ./data` | |
-| filebrowser | `dump_sqlite_tree .` | db sits at the service root |
+| filebrowser | special — BoltDB, not SQLite: `docker compose stop`, `cp -a filebrowser.db db-dump/`, restart from a `trap` | `sqlite3 .backup` cannot read a Bolt file and there is no online dump; a brief stop is the only consistent copy |
 | babybuddy | `dump_sqlite_tree ./config` | |
 | calibre | `dump_sqlite_tree ./calibre-web/config` | the Calibre *library* is on `/mnt/ssd`, out of scope |
 | media-stack | loop `sonarr radarr prowlarr bazarr jellyfin audiobookshelf`, `dump_sqlite_tree ./$svc/config db-dump/$svc` | per-service `db-dump/<svc>/`; the `*arr` `logs.db` files would otherwise collide |
+| wg-easy | `dump_sqlite_tree ./config` | wg-easy 15 keeps the server private key and every peer in `config/wg-easy.db`; `wg0.conf` beside it is plain text and rides along in the snapshot |
+| stirling-pdf | special — embedded H2 (`config/stirling-pdf-DB-*.mv.db`), same stop/copy as filebrowser | the version is in the filename, so stale copies are cleared first: `db-dump/` must hold exactly one or `restore.sh` cannot tell which the image wants |
+| adguard-home | **none** — waived in `services/adguard-home/no-db-dump` | `stats.db` and `sessions.db` are bbolt; all real config is `config/AdGuardHome.yaml`, snapshotted as a plain file. A restore loses statistics history and logged-in sessions, nothing else |
 
 `restore.sh` mirrors each with the `restore_*` counterpart. Services with **no**
-database get neither script; their plain files are backed up as-is.
+database get neither script; their plain files are backed up as-is. A service whose
+database is waived gets neither script either, but it does need the `no-db-dump` file —
+that is what separates "decided against" from "forgotten".
 
 **paperless-ngx** uses its first-class exporter as the primary artefact; the Postgres
 dump is belt-and-braces. `backup.sh`:
@@ -763,7 +780,10 @@ lacks the `backup` subcommand, fall back to `dump_sqlite_tree ./data`.
 ### The orchestrator and the pairing assertion
 
 `scripts/assert-pairing.sh` (in the repo) reads the exclude file and fails if any
-excluded per-service DB path lacks an executable `backup.sh`:
+excluded database lacks an executable `backup.sh`. It makes two passes, because the
+exclude file states the same rule two different ways: path-scoped lines name their
+service directly, while the global `**/*.db` patterns name none and must be resolved
+against the live tree to find out what they actually hide:
 
 ```bash
 #!/bin/bash
@@ -771,18 +791,61 @@ set -euo pipefail
 EXCLUDES="${1:-/etc/restic/homelab-excludes.txt}"
 ROOT="$(dirname "$(readlink -f "$0")")/.."
 fail=0
+
+# A service may declare an individual database regenerable in services/<svc>/no-db-dump:
+# one path per line, relative to the service dir, '#' comments allowed. Only the paths
+# listed are waived, so a database appearing in that service LATER still fails the
+# assertion -- this is a per-file waiver, not a per-service off switch. Every waiver is
+# echoed on every run, because the failure this whole script exists to prevent is a
+# quiet green check and a silent waiver would be exactly that.
+waived() {   # waived <service> <path relative to the service dir>
+    local svc="$1" rel="$2" marker="$ROOT/services/$svc/no-db-dump"
+    [[ -f "$marker" ]] || return 1
+    sed 's/#.*//; s/^[[:space:]]*//; s/[[:space:]]*$//' "$marker" | grep -qxF "$rel" || return 1
+    echo "assert-pairing: waived services/$svc/$rel (declared regenerable in no-db-dump)"
+}
+
+# Path-scoped rules: the service is named in the rule itself.
 while read -r line; do
     case "$line" in ''|'#'*|'!'*|'**'*) continue ;; esac
     svc=$(echo "$line" | sed -n 's#.*/services/\([^/]*\)/.*#\1#p')
     [[ -n "$svc" ]] || continue
     [[ -d "$ROOT/services/$svc" ]] || continue
+    if waived "$svc" "${line#*/services/$svc/}"; then continue; fi
     if [[ ! -x "$ROOT/services/$svc/backup.sh" ]]; then
         echo "UNPAIRED: $line is excluded but services/$svc has no executable backup.sh" >&2
         fail=1; fi
 done < "$EXCLUDES"
+
+# Wildcard rules (**/*.db and friends) name no service, so the loop above cannot
+# check them -- yet they are what actually excludes most live databases. Resolve
+# them against the tree instead: any live database a wildcard rule matches must sit
+# in a service that has a backup.sh, or it is excluded with no dump behind it.
+# Only database patterns are checked; noise rules (*.log, *.tmp) need no dump. The
+# -wal/-shm variants are derivatives of a .db that is itself checked below.
+while read -r line; do
+    case "$line" in
+        '**/*.db'|'**/*.sqlite'|'**/*.sqlite3') ;;
+        *) continue ;;
+    esac
+    while IFS= read -r hit; do
+        [[ "$hit" == */db-dump/* ]] && continue
+        svc=$(echo "$hit" | sed -n 's#^\./services/\([^/]*\)/.*#\1#p')
+        [[ -n "$svc" ]] || continue
+        if waived "$svc" "${hit#./services/$svc/}"; then continue; fi
+        if [[ ! -x "$ROOT/services/$svc/backup.sh" ]]; then
+            echo "UNPAIRED: $hit matches '$line' but services/$svc has no executable backup.sh" >&2
+            fail=1; fi
+    done < <(cd "$ROOT" && find ./services -name "${line##*/}" 2>/dev/null)
+done < "$EXCLUDES"
+
 [[ $fail -eq 0 ]] || { echo "assert-pairing: refusing to back up with unpaired exclusions" >&2; exit 1; }
 echo "assert-pairing: all exclusions paired"
 ```
+
+The wildcard pass runs as root from the `run-before` hook, which matters: several
+service data directories are `drwx------ root`, so the same `find` run as your own user
+traverses none of them and reports everything as fine.
 
 `/usr/local/sbin/homelab-dump.sh` — the `run-before` hook. It *runs* from a system path
 so that the root-executed entry point sits outside the repo's write surface, but its
@@ -1212,7 +1275,12 @@ The design was built so this is almost nothing.
    the shared library (one of the patterns in the [1.7 table](#one-backupsh--restoresh-per-database-owning-service)),
    exclude the raw DB path in `/etc/restic/homelab-excludes.txt`, and re-run the
    [1.8](#18-the-exclude-file) dry-run checks. The pairing assertion will refuse the
-   backup if you exclude the DB dir but forget the `backup.sh`.
+   backup if you exclude the DB dir but forget the `backup.sh`. A bare `*.db`/`*.sqlite3`
+   file needs no new exclude line — the global patterns already hide it, and the
+   assertion resolves them against the tree, so it refuses the backup until the
+   `backup.sh` exists. If the engine has no online dump and stopping the service costs
+   more than the data is worth, waive the exact paths in `services/<name>/no-db-dump`
+   with the reason, and say what a restore therefore loses.
 3. **If it has no database**, do nothing else — plain files are covered.
 4. **Extend the drill** ([5.3](#53-the-quarterly-drill)) if this data matters. A backup
    you have never restored is a hypothesis.

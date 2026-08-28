@@ -1,0 +1,12 @@
+# Databases in this service that are deliberately NOT dumped. assert-pairing.sh waives
+# exactly the paths listed here and nothing else, so a new database added later still
+# fails the assertion until someone decides about it on purpose.
+#
+# Both files are bbolt, not SQLite (magic 0xED0CDAED) -- sqlite3 .backup cannot read
+# them and AdGuard exposes no online dump, so the only consistent copy needs the
+# container stopped. Stopping AdGuard takes LAN-wide DNS resolution down with it, every
+# night, and neither file is needed to rebuild the service: all real configuration lives
+# in config/AdGuardHome.yaml, which IS in the snapshot. What a restore loses is query
+# statistics history and logged-in web sessions.
+data/data/stats.db
+data/data/sessions.db

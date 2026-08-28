@@ -3,12 +3,27 @@ set -euo pipefail
 EXCLUDES="${1:-/etc/restic/homelab-excludes.txt}"
 ROOT="$(dirname "$(readlink -f "$0")")/.."
 fail=0
+
+# A service may declare an individual database regenerable in services/<svc>/no-db-dump:
+# one path per line, relative to the service dir, '#' comments allowed. Only the paths
+# listed are waived, so a database appearing in that service LATER still fails the
+# assertion -- this is a per-file waiver, not a per-service off switch. Every waiver is
+# echoed on every run, because the failure this whole script exists to prevent is a
+# quiet green check and a silent waiver would be exactly that.
+waived() {   # waived <service> <path relative to the service dir>
+    local svc="$1" rel="$2" marker="$ROOT/services/$svc/no-db-dump"
+    [[ -f "$marker" ]] || return 1
+    sed 's/#.*//; s/^[[:space:]]*//; s/[[:space:]]*$//' "$marker" | grep -qxF "$rel" || return 1
+    echo "assert-pairing: waived services/$svc/$rel (declared regenerable in no-db-dump)"
+}
+
 # Path-scoped rules: the service is named in the rule itself.
 while read -r line; do
     case "$line" in ''|'#'*|'!'*|'**'*) continue ;; esac
     svc=$(echo "$line" | sed -n 's#.*/services/\([^/]*\)/.*#\1#p')
     [[ -n "$svc" ]] || continue
     [[ -d "$ROOT/services/$svc" ]] || continue
+    if waived "$svc" "${line#*/services/$svc/}"; then continue; fi
     if [[ ! -x "$ROOT/services/$svc/backup.sh" ]]; then
         echo "UNPAIRED: $line is excluded but services/$svc has no executable backup.sh" >&2
         fail=1; fi
@@ -29,6 +44,7 @@ while read -r line; do
         [[ "$hit" == */db-dump/* ]] && continue
         svc=$(echo "$hit" | sed -n 's#^\./services/\([^/]*\)/.*#\1#p')
         [[ -n "$svc" ]] || continue
+        if waived "$svc" "${hit#./services/$svc/}"; then continue; fi
         if [[ ! -x "$ROOT/services/$svc/backup.sh" ]]; then
             echo "UNPAIRED: $hit matches '$line' but services/$svc has no executable backup.sh" >&2
             fail=1; fi
@@ -37,4 +53,3 @@ done < "$EXCLUDES"
 
 [[ $fail -eq 0 ]] || { echo "assert-pairing: refusing to back up with unpaired exclusions" >&2; exit 1; }
 echo "assert-pairing: all exclusions paired"
-
