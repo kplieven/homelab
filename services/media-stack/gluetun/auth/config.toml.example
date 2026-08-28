@@ -1,0 +1,26 @@
+# Gluetun control server authentication.
+# Since gluetun v3.40 every control-server route is private by default, so a
+# role must explicitly grant each route a client needs.
+# See https://github.com/qdm12/gluetun-wiki/blob/main/setup/advanced/control-server.md#authentication
+#
+# Copy this file to config.toml and replace the key with the value of
+# GLUETUN_API_KEY in .env. Generate a new one with:
+#   docker run --rm qmcgaw/gluetun genkey
+#
+# NOTE: qbittorrent, mam and seedboxapi do NOT use the control server -- they
+# ride gluetun's network namespace (network_mode: service:gluetun). Gluetun's
+# own healthcheck uses a separate internal server on 127.0.0.1:9999. Neither is
+# affected by the roles below.
+
+[[roles]]
+name = "homepage"
+# The homepage gluetun widget's default fields (public_ip, region, country)
+# only hit this one route. It sends the key in the X-API-Key header.
+routes = ["GET /v1/publicip/ip"]
+auth = "apikey"
+apikey = "replace-with-GLUETUN_API_KEY"
+
+# If a "port_forwarded" field is ever added to the homepage widget, grant the
+# matching route here as well -- "GET /v1/openvpn/portforwarded" without
+# homepage.widget.version, or "GET /v1/portforward" with version=2.
+# NordVPN does not offer port forwarding, so it is unused in this stack.

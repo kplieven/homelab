@@ -123,6 +123,10 @@ services:
       - OPENVPN_USER=${OPENVPN_USER}
       - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
       - SERVER_COUNTRIES=Switzerland
+    volumes:
+      # Control server auth: every route is private by default since gluetun
+      # v3.40, so homepage needs an api key role granting GET /v1/publicip/ip.
+      - './gluetun/auth/config.toml:/gluetun/auth/config.toml:ro'
     ports:
       - '8005:8000/tcp'
       - '8888:8888/tcp'
@@ -136,6 +140,7 @@ services:
       - homepage.icon=nordvpn
       - homepage.widget.type=gluetun
       - homepage.widget.url=${GLUETUN_URL}
+      - homepage.widget.key=${GLUETUN_API_KEY}
     restart: unless-stopped
   seedboxapi:
     image: myanonamouse/seedboxapi

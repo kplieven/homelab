@@ -48,6 +48,7 @@ scripts/hooks/local-patterns.txt
 
 # Secret files (API keys mounted into containers)
 *.secret
+services/media-stack/gluetun/auth/config.toml
 
 # Editor / script backups
 *.bak
