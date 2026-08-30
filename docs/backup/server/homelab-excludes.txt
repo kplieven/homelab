@@ -29,11 +29,18 @@ HOMELAB_DIR/services/linkwarden/meili_data
 HOMELAB_DIR/services/many-notes/typesense
 HOMELAB_DIR/services/*/cache
 HOMELAB_DIR/services/media-stack/*/metadata
+# Jellyfin nests cache and metadata under config/, so the services/*/cache and
+# media-stack/*/metadata patterns above sit too shallow to reach them. Named
+# explicitly for the same reason as the DB dirs: no wildcard fishing.
+HOMELAB_DIR/services/media-stack/jellyfin/config/cache
+HOMELAB_DIR/services/media-stack/jellyfin/config/.nv
+HOMELAB_DIR/services/media-stack/jellyfin/config/data/metadata
 
 # Noise.
-**/*.tmp
 **/logs/
 **/*.log
 **/tmp/
 **/*.sock
+**/*.tmp
+
 
