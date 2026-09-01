@@ -579,14 +579,18 @@ copies of the same `.tmp`-and-`mv` dance. `scripts/lib/backup-lib.sh`:
 
 _dump_dir() { mkdir -p db-dump; }
 
-# dump_postgres <container> <user> <db>  ->  db-dump/<db>.sql
+# dump_postgres <container> <user> <db> [pg_dump args...]  ->  db-dump/<db>.sql
+# Trailing args go to pg_dump verbatim. Used to drop table DATA that is pure operational
+# log -- see komodo's cron.job_run_details. Prefer --exclude-table-data over
+# --exclude-table: it drops one table's rows without touching sibling tables that a
+# restore genuinely needs.
 dump_postgres() {
-    local container="$1" user="$2" db="$3"
+    local container="$1" user="$2" db="$3"; shift 3
     _dump_dir
     # The `|| { rm; return 1; }` is not redundant under `set -e`: the redirect creates
     # the .tmp before pg_dump runs, so a bare failure would abort here and strand it.
     docker compose exec -T "$container" \
-        pg_dump -U "$user" -d "$db" --clean --if-exists > "db-dump/${db}.sql.tmp" || {
+        pg_dump -U "$user" -d "$db" --clean --if-exists "$@" > "db-dump/${db}.sql.tmp" || {
         echo "dump_postgres: pg_dump failed for ${db}" >&2
         rm -f "db-dump/${db}.sql.tmp"; return 1; }
     # pg_dump writes a terminating comment; its absence means a truncated dump that
@@ -722,7 +726,7 @@ The full set — build one pair per row, and **verify the container/DB names wit
 | immich | `set -a; . ./.env; set +a` then `dump_postgres database "$DB_USERNAME" "$DB_DATABASE_NAME"` | container is `database` (older: `immich_postgres`) |
 | affine | `set -a; . ./.env; set +a` then `dump_postgres postgres "$DB_USERNAME" "$DB_DATABASE"` | |
 | mealie | `set -a; . ./.env; set +a` then `dump_postgres postgres "$POSTGRES_USER" "$POSTGRES_DB"` | |
-| komodo | `set -a; . ./.env; set +a` then `dump_postgres postgres "$KOMODO_DB_USERNAME" postgres` | db literally `postgres` |
+| komodo | `set -a; . ./.env; set +a` then `dump_postgres postgres "$KOMODO_DB_USERNAME" postgres --exclude-table-data='cron.job_run_details'` | db literally `postgres`; the exclusion is not optional — see [5.4](#54-when-things-go-wrong) |
 | paperless-ngx | `document_exporter ../export --delete` then `dump_postgres db paperless paperless` | see below |
 | your-spotify | `dump_mongo mongo` | no auth |
 | vaultwarden | special — `/vaultwarden backup`, see below | |
@@ -1579,6 +1583,15 @@ manages.
 
 - **A run left a lock.** `restic unlock` after confirming nothing is running.
   `global.restic-stale-lock-age: 2h` handles most cases itself.
+- **A db-dump is enormous and grows every night.** Suspect an unbounded log table before
+  suspecting real data. Komodo's FerretDB/DocumentDB backend schedules two pg_cron index
+  build tasks on a `2 seconds` interval; pg_cron records every run in
+  `cron.job_run_details` and never prunes it. That reached 6.8 GB of a 7.1 GB database —
+  96% of the dump was a log nothing reads. Rank a plain-SQL dump's tables without needing
+  credentials by measuring the byte gaps between its `-- Data for Name:` markers:
+  `grep -b '^-- Data for Name:' db-dump/x.sql`. The fix is three-layered: `TRUNCATE` to
+  reclaim, a `cron.schedule('purge-cron-history', ...)` job to cap it at 7 days, and
+  `--exclude-table-data` so the backup stays lean even if that job is lost to an upgrade.
 - **`forget`/`prune` against the remote fails with a permission error.** Expected — the
   remote is append-only. See [5.2](#52-pruning-the-remote).
 - **`offsite` fails but backups are green.** The tunnel is down.

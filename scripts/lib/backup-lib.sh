@@ -9,14 +9,18 @@
 
 _dump_dir() { mkdir -p db-dump; }
 
-# dump_postgres <container> <user> <db>  ->  db-dump/<db>.sql
+# dump_postgres <container> <user> <db> [pg_dump args...]  ->  db-dump/<db>.sql
+# Trailing args go to pg_dump verbatim. Used to drop table DATA that is pure operational
+# log -- see komodo's cron.job_run_details. Prefer --exclude-table-data over
+# --exclude-table: it drops one table's rows without touching sibling tables that a
+# restore genuinely needs.
 dump_postgres() {
-    local container="$1" user="$2" db="$3"
+    local container="$1" user="$2" db="$3"; shift 3
     _dump_dir
     # The `|| { rm; return 1; }` is not redundant under `set -e`: the redirect creates
     # the .tmp before pg_dump runs, so a bare failure would abort here and strand it.
     docker compose exec -T "$container" \
-        pg_dump -U "$user" -d "$db" --clean --if-exists > "db-dump/${db}.sql.tmp" || {
+        pg_dump -U "$user" -d "$db" --clean --if-exists "$@" > "db-dump/${db}.sql.tmp" || {
         echo "dump_postgres: pg_dump failed for ${db}" >&2
         rm -f "db-dump/${db}.sql.tmp"; return 1; }
     # pg_dump writes a terminating comment; its absence means a truncated dump that
