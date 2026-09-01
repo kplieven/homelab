@@ -52,11 +52,16 @@ count=$(jq '[.[] | select(.model == "documents.document")] | length' "$manifest"
 curl -fsS -m 10 --retry 3 HC_URL/ping/HC_DRILL
 
 # ---------------------------------------------------------------------------
+# systemd parses NO inline comments: a trailing `# ...` is read as part of the value,
+# so `OnCalendar=... # quarterly` fails with "Failed to parse calendar specification"
+# and the timer loads as bad-setting. Every comment below is on its own line.
+#
 # /etc/systemd/system/restic-drill.service
 #   [Unit]
 #   Description=Quarterly restic restore drill (from the remote)
 #   After=network-online.target restic-tunnel.service
 #   Wants=network-online.target
+#
 #   [Service]
 #   Type=oneshot
 #   ExecStart=/usr/local/sbin/restic-drill.sh
@@ -64,12 +69,18 @@ curl -fsS -m 10 --retry 3 HC_URL/ping/HC_DRILL
 # /etc/systemd/system/restic-drill.timer
 #   [Unit]
 #   Description=Run the restic restore drill every 90 days
+#
 #   [Timer]
-#   OnCalendar=*-01,04,07,10-01 05:00:00   # quarterly; well clear of 01:30/02:30/03:00
-#   Persistent=true                        # a host that was down still drills on boot
+#   # Quarterly, clear of the 01:30 backup, 02:30 copy and 03:00 check.
+#   OnCalendar=*-01,04,07,10-01 05:00:00
+#   # A host that was down at the trigger still drills on next boot.
+#   Persistent=true
 #   RandomizedDelaySec=1h
+#
 #   [Install]
 #   WantedBy=timers.target
 #
-#   sudo systemctl daemon-reload && sudo systemctl enable --now restic-drill.timer
+# Verify before enabling -- both must be clean:
+#   systemd-analyze verify /etc/systemd/system/restic-drill.{service,timer}
+#   systemd-analyze calendar '*-01,04,07,10-01 05:00:00'
 # ---------------------------------------------------------------------------
