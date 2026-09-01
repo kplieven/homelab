@@ -38,6 +38,13 @@ declare -a LABELS=(
   'telegram bot token'
 )
 
+# --- Placeholder forms that are SUPPOSED to be committed ---------------------
+# The repo's own convention (REST_USER:REST_PASS, HOMELAB_DIR...) has the exact shape
+# the detectors look for. Without this, every doc quoting the documented form needs
+# ALLOW_LOCAL_VALUES=1 -- which disables all seven checks, not just the false positive.
+# An escape hatch used routinely is not an escape hatch.
+PLACEHOLDER_OK='^rest:https?://REST_USER:REST_PASS@$'
+
 # --- Path patterns: files that must never be committed at all ----------------
 PATH_DENY='(^|/)\.env$|paperless-ngx/export/|meili_data/|ferretdb-state/|mam-seedboxapi/|\.db$'
 
@@ -67,13 +74,18 @@ while IFS= read -r -d '' file; do
 
   blob=$(git show ":$file" 2>/dev/null) || continue
 
+  # A here-string, never a pipe: `printf ... | grep -m1` lets grep exit on the first
+  # match while printf is still writing, so printf dies with SIGPIPE (141), pipefail
+  # promotes that to the pipeline status, and `|| continue` throws the match away. That
+  # failed open on every blob over the ~64K pipe buffer -- the large files are exactly
+  # the ones worth checking. Decide on the captured string, never on exit status.
   for i in "${!PATTERNS[@]}"; do
-    hit=$(printf '%s' "$blob" | grep -aoEm1 -e "${PATTERNS[$i]}" 2>/dev/null) || continue
-    [[ -n "$hit" ]] && report "$file" "${LABELS[$i]}" "$hit"
+    hit=$(grep -aoEm1 -e "${PATTERNS[$i]}" <<< "$blob" 2>/dev/null)
+    [[ -n "$hit" && ! "$hit" =~ $PLACEHOLDER_OK ]] && report "$file" "${LABELS[$i]}" "$hit"
   done
 
   for pat in "${LOCAL[@]}"; do
-    hit=$(printf '%s' "$blob" | grep -aoEim1 -e "$pat" 2>/dev/null) || continue
+    hit=$(grep -aoEim1 -e "$pat" <<< "$blob" 2>/dev/null)
     [[ -n "$hit" ]] && report "$file" "machine-specific value (local-patterns.txt)" "$hit"
   done
 done < <(git diff --cached --name-only --diff-filter=ACM -z)

@@ -1493,6 +1493,20 @@ The monthly remote check is not in the resticprofile config. Add it as a cron en
 the VPS reading the repository directly, or run it by hand from the home server over the
 tunnel. Reading is always allowed in append-only mode.
 
+**Confirm the table above is actually deployed**, rather than merely specified:
+
+```bash
+scripts/verify-backup-deployment.sh VPS_HOST
+```
+
+It checks every artifact section 1 calls for -- binaries, config, hook scripts, timers,
+the tunnel, and on the VPS the append-only guard, the maintenance unit and the disk
+alarm -- and exits non-zero if any is missing. Run it after any change to either host.
+This document was written ahead of the deployment, so the two can drift silently; three
+artifacts were specified and never built, and the one that hurt was
+`/etc/cron.daily/restic-disk-check` sitting at mode 0644, where `run-parts` skipped it
+without a word and the remote filled to 100% unannounced.
+
 ## 5.2 Pruning the remote
 
 The remote grows forever by design. When `HC_DISK` fires, prune it, and keep the
@@ -1525,7 +1539,15 @@ should never occur unattended.
 ## 5.3 The quarterly drill
 
 `/usr/local/sbin/restic-drill.sh`, mode `0700`, owned by root (it embeds `REST_PASS`),
-wired to a systemd timer every 90 days. It restores from the **remote**, because that
+wired to a systemd timer every 90 days. The full script, with its `.service` and
+`.timer` units, is kept beside the other server templates in
+[`server/restic-drill.sh`](server/restic-drill.sh) -- install it with
+
+```bash
+sudo install -m 0700 -o root -g root docs/backup/server/restic-drill.sh /usr/local/sbin/
+# substitute REST_USER / REST_PASS / HC_URL / HC_DRILL, then create the units and:
+sudo systemctl enable --now restic-drill.timer
+``` It restores from the **remote**, because that
 exercises the tunnel, the remote data, and the path you would really use. It calls
 restic by absolute path — under its systemd timer the PATH does not include
 `/usr/local/bin`:
