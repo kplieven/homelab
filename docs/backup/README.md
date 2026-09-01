@@ -1567,18 +1567,40 @@ trap 'rm -rf "$TMP"' EXIT
 
 db=$(find "$TMP" -name db-snapshot.sqlite3 | head -1)
 [[ -n "$db" ]] || { echo "no vaultwarden database in snapshot" >&2; exit 1; }
-sqlite3 "$db" 'PRAGMA integrity_check;' | grep -qx ok
+sqlite3 "file:$db?immutable=1" 'PRAGMA integrity_check;' | grep -qx ok
 
-# Every sqlite dump passes integrity_check.
+# Every sqlite dump passes integrity_check. Identify SQLite by its magic bytes, never
+# by extension: stirling-pdf writes an H2 database named *.mv.db, which a *.db glob
+# happily matches and sqlite3 rejects with "file is not a database", while
+# audiobookshelf writes *.sqlite, which a *.db/*.sqlite3 glob misses entirely. Both are
+# the same mistake -- inferring a format from a filename -- and the second is the
+# dangerous one, because it fails silently. Walk every dumped file and let the format
+# identify itself.
+sqlite_n=0
 while IFS= read -r -d '' f; do
-    [[ "$(sqlite3 "$f" 'PRAGMA integrity_check;')" == "ok" ]] \
+    [[ "$(head -c 15 "$f" 2>/dev/null)" == "SQLite format 3" ]] || continue
+    # immutable=1: open read-only without needing to create a -shm/journal beside the
+    # file. Verification must never write to the evidence it is verifying, and as a plain
+    # read-write open this fails outright on a dump whose directory is not writable.
+    [[ "$(sqlite3 "file:$f?immutable=1" 'PRAGMA integrity_check;')" == "ok" ]] \
         || { echo "$f fails integrity_check" >&2; exit 1; }
-done < <(find "$TMP" -path '*/db-dump/*' \( -name '*.db' -o -name '*.sqlite3' \) -print0)
+    sqlite_n=$((sqlite_n+1))
+done < <(find "$TMP" -path '*/db-dump/*' -type f -print0)
 
 # Every postgres dump ran to completion. A truncated dump replays halfway.
+pg_n=0
 while IFS= read -r -d '' f; do
     grep -q 'PostgreSQL database dump complete' "$f" || { echo "$f is truncated" >&2; exit 1; }
+    pg_n=$((pg_n+1))
 done < <(find "$TMP" -path '*/db-dump/*' -name '*.sql' -print0)
+
+# A loop that iterates zero times passes. If the restore brought nothing back, or an
+# include pattern quietly stopped matching, every check above succeeds by vacuum and the
+# drill reports green having verified nothing -- the exact failure this drill exists to
+# catch. Assert it actually looked at something.
+(( sqlite_n > 0 )) || { echo "no sqlite dumps found to check; drill verified nothing" >&2; exit 1; }
+(( pg_n > 0 ))     || { echo "no postgres dumps found to check; drill verified nothing" >&2; exit 1; }
+echo "drill: $sqlite_n sqlite + $pg_n postgres dumps verified"
 
 # Paperless still has a real document count.
 "$RESTIC" -r "$REPO" --password-file "$PASS" \
