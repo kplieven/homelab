@@ -1578,7 +1578,10 @@ sqlite3 "file:$db?immutable=1" 'PRAGMA integrity_check;' | grep -qx ok
 # identify itself.
 sqlite_n=0
 while IFS= read -r -d '' f; do
-    [[ "$(head -c 15 "$f" 2>/dev/null)" == "SQLite format 3" ]] || continue
+    # tr -d before the substitution: bash cannot hold NUL bytes in a variable and warns
+    # "null byte in input ignored" for every binary file otherwise. SQLite's first 15
+    # bytes contain no NUL, so stripping them keeps the test exact and silences the noise.
+    [[ "$(head -c 15 "$f" 2>/dev/null | tr -d '\000')" == "SQLite format 3" ]] || continue
     # immutable=1: open read-only without needing to create a -shm/journal beside the
     # file. Verification must never write to the evidence it is verifying, and as a plain
     # read-write open this fails outright on a dump whose directory is not writable.
