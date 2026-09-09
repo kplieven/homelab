@@ -1,0 +1,38 @@
+services:
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER}
+      - VPN_TYPE=${VPN_TYPE}
+      - OPENVPN_USER=${OPENVPN_USER}
+      - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
+      - SERVER_COUNTRIES=Switzerland
+    volumes:
+      # Control server auth: every route is private by default since gluetun
+      # v3.40, so homepage needs an api key role granting GET /v1/publicip/ip.
+      - "./auth/config.toml:/gluetun/auth/config.toml:ro"
+    ports:
+      # This stack publishes the ports for EVERY container that shares gluetun's
+      # network namespace, not just gluetun's own. A container using
+      # network_mode: container:gluetun has no network stack of its own, so it
+      # cannot publish a port from its own compose file -- the mapping has to
+      # live here. Keep this list in sync when a consumer's WebUI port changes.
+      - "8005:8000/tcp"   # gluetun control server
+      - "8888:8888/tcp"   # http proxy
+      - "8388:8388/tcp"   # shadowsocks
+      - "8388:8388/udp"
+      - "8080:8080"       # qbittorrent WebUI  -> services/media-stack
+      - "8089:8089"       # mam qbittorrent UI -> services/books-stack
+    labels:
+      - homepage.group=Download
+      - homepage.name=VPN
+      - homepage.icon=nordvpn
+      - homepage.widget.type=gluetun
+      - homepage.widget.url=${GLUETUN_URL}
+      - homepage.widget.key=${GLUETUN_API_KEY}
+    restart: unless-stopped

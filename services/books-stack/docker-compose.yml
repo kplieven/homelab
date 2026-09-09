@@ -1,0 +1,101 @@
+# Books stack: the ebook library, the audiobook library, and the MyAnonaMouse
+# torrent client that feeds both.
+#
+# mam and seedboxapi have no network stack of their own -- they share gluetun's
+# (services/gluetun), so their traffic leaves through the VPN with gluetun's
+# killswitch in front of it. Consequences:
+#   * "container:gluetun" is used instead of "service:gluetun": the service:
+#     form only resolves inside one compose project, the container: form works
+#     across stacks and is what compose lowers service: to anyway.
+#   * their published ports live in services/gluetun/docker-compose.yml.
+#   * depends_on cannot cross projects. Start services/gluetun FIRST, and if
+#     gluetun is ever recreated run services/gluetun/restart-dependents.sh --
+#     these containers will otherwise keep pointing at the dead namespace and
+#     silently lose all network.
+services:
+  calibre-web-automated:
+    image: crocodilestick/calibre-web-automated:latest
+    container_name: calibre-web-automated
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      - HARDCOVER_TOKEN=${HARDCOVER_API_KEY}
+      - NETWORK_SHARE_MODE=false
+      - CWA_PORT_OVERRIDE=8083
+    volumes:
+      - "./calibre-web/config:/config"
+      - "./ingest:/cwa-book-ingest"
+      - "${CALIBRE_LIBRARY_PATH}:/calibre-library"
+    ports:
+      - "${CALIBRE_WEB_PORT:-8083}:8083"
+    labels:
+      - homepage.group=Books
+      - homepage.name=Calibre Web Automated
+      - homepage.icon=calibre-web
+      - homepage.href=${CALIBRE_WEB_HOMEPAGE_URL}
+    restart: unless-stopped
+
+  audiobookshelf:
+    container_name: audiobookshelf
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    ports:
+      - "13378:80"
+    volumes:
+      - "${MEDIA_ROOT}/audiobooks:/audiobooks"
+      - "./audiobookshelf/config:/config"
+      - "./audiobookshelf/metadata:/metadata"
+    environment:
+      - TZ=${TZ}
+    labels:
+      - homepage.group=Books
+      - homepage.name=Audiobookshelf
+      - homepage.icon=audiobookshelf
+      - homepage.href=${AUDIOBOOKSHELF_URL}
+      - homepage.widget.type=audiobookshelf
+      - homepage.widget.url=${AUDIOBOOKSHELF_URL}
+      - homepage.widget.key=${AUDIOBOOKSHELF_API_KEY}
+    restart: unless-stopped
+
+  mam:
+    container_name: mam
+    image: lscr.io/linuxserver/qbittorrent:5.1.0
+    network_mode: "container:gluetun"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+      - TZ=${TZ}
+      - WEBUI_PORT=8089   # published by services/gluetun
+    volumes:
+      - "./mam/config:/config"
+      - "${MEDIA_ROOT}:/data/media"
+      - "${TORRENT_ROOT}:/data/torrents"
+    labels:
+      - homepage.group=Download
+      - homepage.name=MAM
+      - homepage.icon=qbittorrent
+      - homepage.href=${MAM_URL}
+      - homepage.widget.type=qbittorrent
+      - homepage.widget.url=${MAM_URL}
+      - homepage.widget.username=${MAM_USERNAME}
+      - homepage.widget.password=${MAM_PASSWORD}
+    restart: unless-stopped
+
+  seedboxapi:
+    image: myanonamouse/seedboxapi
+    user: 1000:1000 # Run as a non-root user.
+    container_name: seedboxapi
+    network_mode: "container:gluetun"
+    volumes:
+      - "./mam-seedboxapi/config:/config"
+      - "./mam-seedboxapi/tmp:/tmp"
+    environment:
+      - DEBUG=2
+      - mam_id=${MAM_SESSION_ID}
+      - interval=1
+    # Deliberately no restart policy (matches the original media-stack config).
+    # This container exits 1 when MyAnonaMouse refuses a seedbox IP update
+    # ("Last change too recent" -- MAM rate-limits how often the session IP may
+    # move). Under a restart policy that becomes a loop hammering their API
+    # every few seconds. It is meant to be started once the cooldown passes.

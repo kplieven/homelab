@@ -17,6 +17,19 @@ This directory contains the configuration for running a complete media automatio
 
 ---
 
+> **Networking:** qBittorrent has no network stack of its own -- it shares the
+> namespace of the `gluetun` container defined in [`../gluetun`](../gluetun),
+> so its traffic leaves through the VPN. Consequences:
+>
+> - Bring `services/gluetun` up **before** this stack.
+> - qBittorrent's WebUI port (`8080`) is published by the gluetun stack, not here.
+> - `depends_on` cannot cross compose projects. If gluetun is ever recreated,
+>   run `../gluetun/restart-dependents.sh` -- otherwise qBittorrent keeps
+>   pointing at a dead namespace and silently loses all network while still
+>   reporting as "running".
+>
+> Audiobookshelf, MAM and seedboxapi now live in [`../books-stack`](../books-stack).
+
 ## Services Overview
 
 ### Prowlarr
@@ -77,14 +90,6 @@ Request management:
 - User permissions and quotas
 - Request approval workflow
 
-### Audiobookshelf
-
-Audiobook server:
-- Organize and stream audiobooks
-- Podcast support
-- Progress tracking
-- Mobile apps available
-
 ### FlareSolverr
 
 Cloudflare bypass proxy:
@@ -105,27 +110,6 @@ Each service has its own configuration. A few common ones:
 | `<SERVICE>_URL` | The URL that the homepage will link to for each service. |
 | `TZ` | Timezone for all containers, as a TZ identifier (e.g. `Etc/UTC`). |
 | `MEDIA_ROOT` | Host path to the bulk media library; `media/` and `torrents/` live under it. |
-
-### VPN (Gluetun)
-
-Check out the [Gluetun wiki](https://github.com/qdm12/gluetun-wiki/tree/main/setup/providers) for setup guides for various different VPN providers
-
-| Variable | Description |
-| :-- | :-- |
-| `VPN_SERVICE_PROVIDER` | Your VPN provider |
-| `VPN_TYPE` | VPN type (`openvpn` or `wireguard`) |
-| `OPENVPN_USER` | OpenVPN username (if using `openvpn`) |
-| `OPENVPN_PASSWORD` | OpenVPN password (if using `openvpn`) |
-
-### MyAnonaMouse (MAM)
-
-. If you are not a MyAnonaMouse user you can remove these variables and also remove the `mam` and `seedboxapi` containers from the compose file.
-
-| Variable | Description |
-| :-- | :-- |
-| `MAM_SESSION_ID` | Session ID for the MAM seedboxapi container. |
-| `MAM_USERNAME` | Username for the MAM qBittorrent container (for Homepage widget). |
-| `MAM_PASSWORD` | Password for the MAM qBittorrent container (for Homepage widget). |
 
 ---
 

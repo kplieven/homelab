@@ -8,7 +8,7 @@ set -euo pipefail
 # service its own output dir (2nd arg to dump_sqlite_tree) so nothing overwrites anything
 # else. The exclude-file re-includes services/*/db-dump/** recursively, so the per-service
 # subdirs back up unchanged — no exclude-file edit needed.
-for svc in sonarr radarr prowlarr bazarr jellyfin audiobookshelf; do
+for svc in sonarr radarr prowlarr bazarr jellyfin; do
     [[ -d "./$svc/config" ]] || continue
     dump_sqlite_tree "./$svc/config" "db-dump/$svc"
 done

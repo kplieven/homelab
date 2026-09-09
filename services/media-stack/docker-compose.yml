@@ -107,60 +107,20 @@ services:
       - homepage.name=Jellyfin
       - homepage.icon=jellyfin
       - homepage.href=${JELLYFIN_URL}
+      - homepage.version=2
       - homepage.widget.type=jellyfin
       - homepage.widget.url=${JELLYFIN_URL}
       - homepage.widget.key=${JELLYFIN_API_KEY}
     restart: unless-stopped
-  gluetun:
-    image: qmcgaw/gluetun
-    container_name: gluetun
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun
-    environment:
-      - VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER}
-      - VPN_TYPE=${VPN_TYPE}
-      - OPENVPN_USER=${OPENVPN_USER}
-      - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
-      - SERVER_COUNTRIES=Switzerland
-    volumes:
-      # Control server auth: every route is private by default since gluetun
-      # v3.40, so homepage needs an api key role granting GET /v1/publicip/ip.
-      - './gluetun/auth/config.toml:/gluetun/auth/config.toml:ro'
-    ports:
-      - '8005:8000/tcp'
-      - '8888:8888/tcp'
-      - '8388:8388/tcp'
-      - '8388:8388/udp'
-      - '8080:8080'  # For qBittorrent web UI
-      - '8089:8089'  # For qBittorrent mam web UI
-    labels:
-      - homepage.group=Download
-      - homepage.name=VPN
-      - homepage.icon=nordvpn
-      - homepage.widget.type=gluetun
-      - homepage.widget.url=${GLUETUN_URL}
-      - homepage.widget.key=${GLUETUN_API_KEY}
-    restart: unless-stopped
-  seedboxapi:
-    image: myanonamouse/seedboxapi
-    user: 1000:1000 # Run as a non-root user.
-    container_name: seedboxapi
-    network_mode: "service:gluetun"
-    volumes:
-      - './mam-seedboxapi/config:/config'
-      - './mam-seedboxapi/tmp:/tmp'
-    environment:
-      - DEBUG=2
-      - mam_id=${MAM_SESSION_ID}
-      - interval=1
   qbittorrent:
     container_name: qbittorrent
     image: lscr.io/linuxserver/qbittorrent:latest
-    network_mode: "service:gluetun"
-    depends_on:
-      - gluetun
+    # gluetun lives in services/gluetun. The service: form only resolves
+    # within one compose project, so address the container directly.
+    # Start services/gluetun first; if gluetun is ever recreated, run
+    # services/gluetun/restart-dependents.sh or this container keeps a
+    # dead namespace and silently loses all network.
+    network_mode: "container:gluetun"
     environment:
       - PUID=1000
       - PGID=1000
@@ -179,32 +139,6 @@ services:
       - homepage.widget.url=${QBITTORRENT_URL}
       - homepage.widget.username=${QBITTORRENT_USERNAME}
       - homepage.widget.password=${QBITTORRENT_PASSWORD}
-    restart: unless-stopped
-  mam:
-    container_name: mam
-    image: lscr.io/linuxserver/qbittorrent:5.1.0
-    network_mode: "service:gluetun"
-    depends_on:
-      - gluetun
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - UMASK=002
-      - TZ=${TZ}
-      - WEBUI_PORT=8089
-    volumes:
-      - './mam/config:/config'
-      - '${MEDIA_ROOT}:/data/media'
-      - '${TORRENT_ROOT}:/data/torrents'
-    labels:
-      - homepage.group=Download
-      - homepage.name=MAM
-      - homepage.icon=qbittorrent
-      - homepage.href=${MAM_URL}
-      - homepage.widget.type=qbittorrent
-      - homepage.widget.url=${MAM_URL}
-      - homepage.widget.username=${MAM_USERNAME}
-      - homepage.widget.password=${MAM_PASSWORD}
     restart: unless-stopped
   flaresolverr:
     container_name: flaresolverr
@@ -236,24 +170,4 @@ services:
       - homepage.widget.type=jellyseerr
       - homepage.widget.url=${JELLYSEERR_URL}
       - homepage.widget.key=${JELLYSEERR_API_KEY}
-    restart: unless-stopped
-  audiobookshelf:
-    container_name: audiobookshelf
-    image: ghcr.io/advplyr/audiobookshelf:latest
-    ports:
-      - '13378:80'
-    volumes:
-      - '${MEDIA_ROOT}/audiobooks:/audiobooks'
-      - './audiobookshelf/config:/config'
-      - './audiobookshelf/metadata:/metadata'
-    environment:
-      - TZ=${TZ}
-    labels:
-      - homepage.group=Books
-      - homepage.name=Audiobookshelf
-      - homepage.icon=audiobookshelf
-      - homepage.href=${AUDIOBOOKSHELF_URL}
-      - homepage.widget.type=audiobookshelf
-      - homepage.widget.url=${AUDIOBOOKSHELF_URL}
-      - homepage.widget.key=${AUDIOBOOKSHELF_API_KEY}
     restart: unless-stopped

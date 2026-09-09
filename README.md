@@ -63,10 +63,16 @@ homelab/
 │   ├── adguard-home/                   # DNS-level ad blocking
 │   ├── affine/                         # Workspace for docs and whiteboards
 │   ├── babybuddy/                      # Baby tracking application
+│   ├── books-stack/                    # Ebooks, audiobooks and the MAM client
+│   │   ├── audiobookshelf/             # Audiobook server & player
+│   │   ├── calibre-web/                # Calibre-Web Automated config
+│   │   ├── ingest/                     # Watched folder for new ebooks
+│   │   ├── mam/                        # qBittorrent for MyAnonaMouse (via gluetun)
+│   │   └── mam-seedboxapi/             # MAM session IP sync (via gluetun)
 │   ├── caddy/                          # Reverse proxy & SSL termination
-│   ├── calibre/                        # E-book management
 │   ├── filebrowser/                    # Web-based file manager
 │   ├── forgejo/                        # Self-hosted Git forge
+│   ├── gluetun/                        # Standalone VPN; other stacks share its netns
 │   ├── home-assistant/                 # Home automation platform
 │   ├── homepage/                       # Dashboard/homepage
 │   ├── immich/                         # Photo management & backup
@@ -74,17 +80,13 @@ homelab/
 │   ├── linkwarden/                     # Bookmark manager
 │   ├── mealie/                         # Recipe management
 │   ├── media-stack/                    # Combined media automation stack
-│   │   ├── audiobookshelf/             # Audiobook server & player
 │   │   ├── bazarr/                     # Subtitle management
 │   │   ├── jellyfin/                   # Media server
 │   │   ├── jellyseerr/                 # Media request management
-│   │   ├── mam/                        # qBittorrent for MyAnonaMouse
-│   │   ├── mam-seedboxapi/             # MAM API integration
 │   │   ├── prowlarr/                   # Indexer manager
-│   │   ├── qbittorrent/                # General torrent client
+│   │   ├── qbittorrent/                # General torrent client (via gluetun)
 │   │   ├── radarr/                     # Movie collection manager
-│   │   ├── sonarr/                     # TV show collection manager
-│   │   └── gluetun/                    # VPN container for downloaders
+│   │   └── sonarr/                     # TV show collection manager
 │   ├── minecraft-server/               # Minecraft Java Edition server
 │   ├── pairdrop/                       # Local file sharing
 │   ├── paperless-ngx/                  # Document management system
@@ -117,9 +119,7 @@ homelab/
 | ↳ Sonarr | TV management | 8989 | ✅ Production |
 | ↳ Prowlarr | Indexer management | 9696 | ✅ Production |
 | ↳ Bazarr | Subtitle management | 6767 | ✅ Production |
-| ↳ qBittorrent | Download client | 8080 | ✅ Production |
-| ↳ qBittorrent (MAM) | Download client for MyAnonaMouse | 8089 | ✅ Production |
-| ↳ Audiobookshelf | Audiobook server | 13378 | ✅ Production |
+| ↳ qBittorrent | Download client (shares the gluetun netns) | 8080 | ✅ Production |
 | [Your Spotify](services/your-spotify/) | Spotify listening statistics | - | ✅ Production |
 
 ### 📄 Documents
@@ -145,8 +145,10 @@ homelab/
 ### 📚 E-books
 | Service | Purpose | Port | Status |
 |---------|---------|------|--------|
-| [Calibre](services/calibre/) | E-book management | 8183 | ✅ Production |
-| ↳ Calibre-web | Calibre frontend | 8083 | ✅ Production |
+| [Books Stack](services/books-stack/) | Ebooks, audiobooks and the MAM client | Various | ✅ Production |
+| ↳ Calibre-Web Automated | Ebook library & auto-ingest | 8083 | ✅ Production |
+| ↳ Audiobookshelf | Audiobook server & player | 13378 | ✅ Production |
+| ↳ qBittorrent (MAM) | MyAnonaMouse client (shares the gluetun netns) | 8089 | ✅ Production |
 
 ### 🔒 Security
 | Service | Purpose | Port | Status |
@@ -409,7 +411,7 @@ docker compose -f services/SERVICE_NAME/docker-compose.yml logs -f
 - [Affine Setup](services/affine/README.md)
 - [Babybuddy Setup](services/babybuddy/README.md)
 - [Caddy Configuration Guide](services/caddy/README.md)
-- [Calibre Setup](services/calibre/README.md)
+- [Books Stack Setup](services/books-stack/README.md)
 - [File Browser Setup](services/filebrowser/README.md)
 - [Forgejo Setup](services/forgejo/README.md)
 - [Home Assistant Configuration](services/home-assistant/README.md)
@@ -418,6 +420,7 @@ docker compose -f services/SERVICE_NAME/docker-compose.yml logs -f
 - [Komodo Setup](services/komodo/README.md)
 - [Linkwarden Setup](services/linkwarden/README.md)
 - [Mealie Setup](services/mealie/README.md)
+- [Gluetun (VPN) Setup](services/gluetun/README.md)
 - [Media Stack Setup Guide](services/media-stack/README.md)
 - [Minecraft Server Setup](services/minecraft-server/README.md)
 - [PairDrop Setup](services/pairdrop/README.md)
