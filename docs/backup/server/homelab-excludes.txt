@@ -3,7 +3,6 @@
 # has no dump behind it (the pairing rule).
 HOMELAB_DIR/services/linkwarden/pgdata
 HOMELAB_DIR/services/immich/postgres
-HOMELAB_DIR/services/affine/postgres
 HOMELAB_DIR/services/mealie/database
 HOMELAB_DIR/services/komodo/db
 HOMELAB_DIR/services/paperless-ngx/database
