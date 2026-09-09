@@ -4,7 +4,9 @@ services:
     container_name: filebrowser
     restart: unless-stopped
     volumes:
-      - '${BROWSER_ROOT_PATH}:/srv'
+      - '${BROWSER_ROOT_PATH}:/srv/media'
+      - '${TORRENT_ROOT}:/srv/torrents'
+      - '${FILES_ROOT}/to-be-imported:/srv/to-be-imported'
       - './filebrowser.db:/database/filebrowser.db'
       - './settings.json:/config/settings.json'
     environment:

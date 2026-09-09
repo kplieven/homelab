@@ -3,7 +3,7 @@ services:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
     environment:
-      - HOMEPAGE_ALLOWED_HOSTS=${HOMEPAGE_URL},${SERVER_IP}:3001
+      - HOMEPAGE_ALLOWED_HOSTS=${HOMEPAGE_URL},www.${HOMEPAGE_URL},${SERVER_IP}:3001
       # Substituted into config/*.yaml as {{HOMEPAGE_VAR_*}} -- keeps machine-specific
       # values (title, mountpoint, timezone, coordinates) out of the committed config.
       - HOMEPAGE_VAR_TITLE=${TITLE}
@@ -13,7 +13,11 @@ services:
       - HOMEPAGE_VAR_LATITUDE=${LATITUDE}
       - HOMEPAGE_VAR_LONGITUDE=${LONGITUDE}
       - PUID=1000
-      - PGID=996
+      # Must be the host's docker group, or the Docker widgets show nothing:
+      # the entrypoint drops to PUID:PGID and clears supplementary groups,
+      # so group_add cannot grant socket access. Find it with:
+      #   getent group docker | cut -d: -f3
+      - PGID=${DOCKER_GID}
     ports:
       - '${PORT:-3001}:3000'
     volumes:

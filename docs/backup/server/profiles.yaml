@@ -9,7 +9,7 @@ global:
   restic-stale-lock-age: 2h
 
 default:
-  repository: "/mnt/ssd/restic"
+  repository: "/mnt/restic"
   password-file: /etc/restic/repo.pass
   initialize: false
 

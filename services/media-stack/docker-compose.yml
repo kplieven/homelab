@@ -30,7 +30,8 @@ services:
       - '8989:8989'
     volumes:
       - './sonarr/config:/config'
-      - '${MEDIA_ROOT}:/data'
+      - '${MEDIA_ROOT}:/data/media'
+      - '${TORRENT_ROOT}:/data/torrents'
     labels:
       - homepage.group=Media
       - homepage.name=Sonarr
@@ -51,7 +52,8 @@ services:
       - '7878:7878'
     volumes:
       - './radarr/config:/config'
-      - '${MEDIA_ROOT}:/data'
+      - '${MEDIA_ROOT}:/data/media'
+      - '${TORRENT_ROOT}:/data/torrents'
     labels:
       - homepage.group=Media
       - homepage.name=Radarr
@@ -70,7 +72,8 @@ services:
       - TZ=${TZ}
     volumes:
       - './bazarr/config:/config'
-      - '${MEDIA_ROOT}:/data'
+      - '${MEDIA_ROOT}:/data/media'
+      - '${TORRENT_ROOT}:/data/torrents'
     ports:
       - '6767:6767'
     labels:
@@ -93,14 +96,12 @@ services:
       - '8096:8096'
     volumes:
       - './jellyfin/config:/config'
-      - '${MEDIA_ROOT}/media:/data/media'
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+      - '${MEDIA_ROOT}:/data/media'
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - '992'   # render
+      - '44'    # video
     labels:
       - homepage.group=Media
       - homepage.name=Jellyfin
@@ -168,7 +169,7 @@ services:
       - WEBUI_PORT=8080
     volumes:
       - './qbittorrent/config:/config'
-      - '${MEDIA_ROOT}/torrents:/data/torrents'
+      - '${TORRENT_ROOT}:/data/torrents'
     labels:
       - homepage.group=Download
       - homepage.name=QBitTorrent
@@ -193,7 +194,8 @@ services:
       - WEBUI_PORT=8089
     volumes:
       - './mam/config:/config'
-      - '${MEDIA_ROOT}:/data'
+      - '${MEDIA_ROOT}:/data/media'
+      - '${TORRENT_ROOT}:/data/torrents'
     labels:
       - homepage.group=Download
       - homepage.name=MAM
@@ -241,7 +243,7 @@ services:
     ports:
       - '13378:80'
     volumes:
-      - '${MEDIA_ROOT}/torrents/audiobooks:/audiobooks'
+      - '${MEDIA_ROOT}/audiobooks:/audiobooks'
       - './audiobookshelf/config:/config'
       - './audiobookshelf/metadata:/metadata'
     environment:
