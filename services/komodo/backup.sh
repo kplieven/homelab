@@ -3,18 +3,24 @@ set -euo pipefail
 . "$(dirname "$(readlink -f "$0")")/../../scripts/lib/backup-lib.sh"
 
 set -a; . ./.env; set +a
-# db name is literally "postgres"; only the user comes from .env.
-#
-# cron.job_run_details is pg_cron's execution log. DocumentDB schedules two index-build
-# tasks on a "2 seconds" interval, so it grows ~89k rows/day (~15 MB) forever and nothing
-# ever reads it -- it reached 6.8 GB of a 7.1 GB database before this was caught. A
-# purge job (cron.schedule 'purge-cron-history') caps it at 7 days server-side; this
-# exclusion is the second line of defence, so the backup stays small even if that job is
-# dropped by a DocumentDB upgrade.
-#
-# -table-DATA, not -table: cron.job holds the schedules themselves (including the purge
-# job) and must keep being dumped. Only the run log is dropped. The table is recreated on
-# restore by CREATE EXTENSION pg_cron, not by DDL in this dump.
-dump_postgres postgres "${KOMODO_DB_USERNAME}" postgres \
-    --exclude-table-data='cron.job_run_details'
 
+# NOT dump_postgres -- that produced a dump that cannot be restored, silently, for as
+# long as this service has been backed up. Verified 2026-09-08 during the Proxmox move.
+#
+# Komodo's data lives in FerretDB. FerretDB keeps the documents in ordinary tables
+# (documentdb_data.documents_<n>) but the collection catalogue
+# (documentdb_api_catalog.collections) belongs to the `documentdb` EXTENSION, and
+# pg_dump does not dump extension-owned table data. A pg_dump/psql round-trip therefore
+# restores every document row and no catalogue at all: FerretDB sees zero collections
+# while documents_<n> already exist, so Komodo allocates collection id 17 afresh and
+# dies on `relation "documents_17" already exists`.
+#
+# Second, independent defect in the old approach: the dump's own `COPY cron.job` block
+# always collided with the jobs that `CREATE EXTENSION documentdb` re-registers earlier
+# in the same replay, so ON_ERROR_STOP aborted at the FIRST COPY and every table came
+# back empty.
+#
+# Dumping over the mongo wire protocol avoids both. The ferretdb image is scratch-based
+# (no shell, no mongodump), hence the sidecar.
+dump_mongo_sidecar komodo_default \
+    "mongodb://${KOMODO_DB_USERNAME}:${KOMODO_DB_PASSWORD}@ferretdb:27017/komodo"

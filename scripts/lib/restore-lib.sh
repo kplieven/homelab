@@ -18,6 +18,16 @@ restore_mongo() {
     docker compose exec -T "$container" mongorestore --archive --drop < db-dump/mongo.archive
 }
 
+# restore_mongo_sidecar <network> <uri>
+# Counterpart to dump_mongo_sidecar: mongorestore from a mongo:6 sidecar, for a
+# target whose own container has no tools (FerretDB).
+restore_mongo_sidecar() {
+    local network="$1" uri="$2"
+    [[ -f db-dump/mongo.archive ]] || { echo "restore_mongo_sidecar: no db-dump/mongo.archive" >&2; return 1; }
+    docker run --rm -i --network "$network" mongo:6 \
+        mongorestore --uri "$uri" --archive --drop < db-dump/mongo.archive
+}
+
 # restore_sqlite_tree <path> [srcdir]   (FORCE=1 to overwrite a live db)
 # srcdir defaults to db-dump/; pass the matching per-service dir written by dump_sqlite_tree.
 restore_sqlite_tree() {

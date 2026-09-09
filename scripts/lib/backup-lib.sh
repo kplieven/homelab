@@ -51,6 +51,29 @@ dump_mongo() {
     mv -f db-dump/mongo.archive.tmp db-dump/mongo.archive
 }
 
+# dump_mongo_sidecar <network> <uri> [min_bytes]  ->  db-dump/mongo.archive
+# For a mongo-wire database whose own container carries no mongodump: runs the tool
+# from a mongo:6 sidecar on <network> instead of `docker compose exec`. FerretDB is
+# scratch-based (no shell, no tools), so this is the only way to reach it.
+#
+# min_bytes defaults to 1024. An archive holding zero collections is ~112 bytes and
+# would sail through dump_mongo's `-s` non-empty check, so the floor is the point:
+# for a database that is never legitimately empty, "dumped nothing" is a failure,
+# not a backup.
+dump_mongo_sidecar() {
+    local network="$1" uri="$2" min="${3:-1024}"
+    _dump_dir
+    docker run --rm --network "$network" mongo:6 \
+        mongodump --uri "$uri" --archive > db-dump/mongo.archive.tmp || {
+        echo "dump_mongo_sidecar: mongodump failed" >&2
+        rm -f db-dump/mongo.archive.tmp; return 1; }
+    local size; size=$(stat -c%s db-dump/mongo.archive.tmp 2>/dev/null || echo 0)
+    (( size >= min )) || {
+        echo "dump_mongo_sidecar: archive is ${size}B, below the ${min}B floor -- refusing to ship it" >&2
+        rm -f db-dump/mongo.archive.tmp; return 1; }
+    mv -f db-dump/mongo.archive.tmp db-dump/mongo.archive
+}
+
 # dump_sqlite_tree <path> [outdir]  ->  <outdir>/<basename> for each *.db / *.sqlite3 / *.sqlite
 # outdir defaults to db-dump/; pass it when one service owns several databases that would
 # otherwise collide on basename (see media-stack). Discovers rather than hardcodes:
