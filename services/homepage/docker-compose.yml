@@ -8,6 +8,7 @@ services:
       # values (title, mountpoint, timezone, coordinates) out of the committed config.
       - HOMEPAGE_VAR_TITLE=${TITLE}
       - HOMEPAGE_VAR_MEDIA_DISK_PATH=${MEDIA_DISK_PATH}
+      - HOMEPAGE_VAR_TORRENT_DISK_PATH=${TORRENT_DISK_PATH}
       - HOMEPAGE_VAR_TZ=${TZ}
       - HOMEPAGE_VAR_WEATHER_LABEL=${WEATHER_LABEL}
       - HOMEPAGE_VAR_LATITUDE=${LATITUDE}
@@ -25,4 +26,5 @@ services:
       - '/run/docker.sock:/var/run/docker.sock:ro'
       - '${BACKGROUND_IMAGE_PATH}:/app/public/images/background.jpg'
       - '${MEDIA_DISK_PATH}:${MEDIA_DISK_PATH}:ro'
+      - '${TORRENT_DISK_PATH}:${TORRENT_DISK_PATH}:ro'
     restart: unless-stopped

@@ -9,6 +9,7 @@
     disk:
       - /
       - "{{HOMEPAGE_VAR_MEDIA_DISK_PATH}}"
+      - "{{HOMEPAGE_VAR_TORRENT_DISK_PATH}}"
     units: metric
     network: true
 
