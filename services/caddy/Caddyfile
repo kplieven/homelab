@@ -35,6 +35,9 @@ bazarr.{$DOMAIN} {
 }
 
 jellyfin.{$DOMAIN}, tv.{$DOMAIN} {
+    # Jellyfin 12 dropped the legacy /emby path alias, but Homepage's jellyfin
+    # widget still hardcodes /emby/{endpoint} and gets a 404. Map it back.
+    uri strip_prefix /emby
     reverse_proxy {$SERVER_IP}:8096
     import cloudflare
 }
