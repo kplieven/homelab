@@ -50,14 +50,24 @@ scripts/hooks/local-patterns.txt
 # service directories cannot silently un-ignore it.
 **/gluetun/auth/config.toml
 
-# Editor / script backups
+# Editor / script backups, including the timestamped ones the migration
+# scripts leave behind (Caddyfile.bak-20260909-135739 and friends).
 *.bak
+*.bak-*
 
 # Personal projects hosted here but developed elsewhere -- not part of this repo.
 services/budkin/
 services/investment-tracker/
 services/steel-design-planner/
+services/personal-website/
+
+# ext4 volume root (mp0 mounts at /srv/homelab)
+lost+found/
 
 # Import state: rewritten by the import timers, restored by restic with HOMELAB_DIR
 services/books-stack/imported-*-hashes.txt
 services/books-stack/import-new-books.sh.bak-*
+
+# Jellyfin runtime state: the config/ dir is covered by the generic rule, the
+# pre-migration database dumps are not.
+services/media-stack/jellyfin/db-backup-*/
