@@ -116,6 +116,31 @@ chmod +x backup.sh
 
 ---
 
+## Restoring
+
+**`document_exporter` does not export API tokens.** The manifest carries
+`auth.user` but nothing from `authtoken.token`, so a restore brings your users
+back without their tokens and the Homepage widget starts returning
+`401 {"detail":"Invalid token."}`.
+
+After any restore or host migration:
+
+1. **Issue a fresh token** in the Paperless UI under *Settings -> My Profile ->
+   API Auth Token*.
+
+2. **Update `PAPERLESS_API_KEY`** in `.env`.
+
+3. **Recreate the container** so the Homepage label picks up the new value:
+
+```sh
+docker compose up -d
+```
+
+Step 3 is not optional — `homepage.widget.key` is resolved when the container
+is created, so editing `.env` alone leaves the old token baked into the label.
+
+---
+
 ## Notes
 
 - Export folder is `./export` for manual exports and backups.
