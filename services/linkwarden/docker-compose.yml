@@ -3,6 +3,11 @@ services:
     container_name: linkwarden_postgres
     image: postgres:16-alpine
     env_file: docker-compose.env
+    # POSTGRES_PASSWORD lives in .env (same value the DATABASE_URL below
+    # interpolates), not in docker-compose.env. Without it the entrypoint
+    # refuses to initialise an empty pgdata and the container restart-loops.
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     restart: unless-stopped
     volumes:
       - './pgdata:/var/lib/postgresql/data'
