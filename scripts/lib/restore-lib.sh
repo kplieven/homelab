@@ -30,19 +30,26 @@ restore_mongo_sidecar() {
 
 # restore_sqlite_tree <path> [srcdir]   (FORCE=1 to overwrite a live db)
 # srcdir defaults to db-dump/; pass the matching per-service dir written by dump_sqlite_tree.
+#
+# Mirror of dump_sqlite_tree: it stores each database under its path relative to <path>,
+# so this walks <srcdir> recursively and rebuilds that path under <path>. A flat dump
+# still restores flat, which is what the flat services want.
+#
+# -shm/-wal are skipped deliberately. They are not produced by `.backup`, but stale ones
+# from the pre-`.backup` era still sit in some db-dump dirs, and dropping a stale WAL
+# beside a freshly restored database is a good way to roll it back or corrupt it.
 restore_sqlite_tree() {
-    local root="$1" src="${2:-db-dump}" found=0 f base
+    local root="${1%/}" src="${2:-db-dump}" found=0 f rel base
     [[ -d "$src" ]] || { echo "restore_sqlite_tree: no $src/" >&2; return 1; }
-    for f in "$src"/*; do
-        [[ -f "$f" ]] || continue
-        base=$(basename "$f")
-        case "$base" in *.sql|*.archive) continue ;; esac
+    while IFS= read -r -d '' f; do
+        rel="${f#"$src"/}"; base=$(basename "$rel")
+        case "$base" in *.sql|*.archive|*.tmp|*-shm|*-wal) continue ;; esac
         found=1
-        if [[ -e "${root}/${base}" && "${FORCE:-0}" != "1" ]]; then
-            echo "restore_sqlite_tree: ${root}/${base} exists; stop the service and re-run with FORCE=1" >&2
+        if [[ -e "${root}/${rel}" && "${FORCE:-0}" != "1" ]]; then
+            echo "restore_sqlite_tree: ${root}/${rel} exists; stop the service and re-run with FORCE=1" >&2
             return 1; fi
-        mkdir -p "$root"; cp -a "$f" "${root}/${base}"
-    done
+        mkdir -p "${root}/$(dirname "$rel")"; cp -a "$f" "${root}/${rel}"
+    done < <(find "$src" -type f -print0)
     [[ $found -eq 1 ]] || { echo "restore_sqlite_tree: no sqlite dumps in $src/" >&2; return 1; }
 }
 

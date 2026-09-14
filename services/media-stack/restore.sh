@@ -5,7 +5,10 @@ set -euo pipefail
 # Mirror of backup.sh: each service's dumps live in db-dump/<svc>/ and restore into
 # ./<svc>/config. The per-service dir is the source-dir (2nd) argument. Stop the media
 # containers first; re-run with FORCE=1 to overwrite a live database.
-for svc in sonarr radarr prowlarr bazarr jellyfin; do
+# Keep this list identical to backup.sh's. jellyseerr was dumped but never restored --
+# a7bb208 added it to the backup loop only, so its database rode along in every snapshot
+# with no way back out.
+for svc in sonarr radarr prowlarr bazarr jellyfin jellyseerr; do
     [[ -d "db-dump/$svc" ]] || continue
     restore_sqlite_tree "./$svc/config" "db-dump/$svc"
 done

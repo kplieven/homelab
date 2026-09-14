@@ -74,24 +74,36 @@ dump_mongo_sidecar() {
     mv -f db-dump/mongo.archive.tmp db-dump/mongo.archive
 }
 
-# dump_sqlite_tree <path> [outdir]  ->  <outdir>/<basename> for each *.db / *.sqlite3 / *.sqlite
-# outdir defaults to db-dump/; pass it when one service owns several databases that would
-# otherwise collide on basename (see media-stack). Discovers rather than hardcodes:
-# filenames vary by image version.
+# dump_sqlite_tree <path> [outdir]  ->  <outdir>/<path relative to <path>> for each
+# *.db / *.sqlite3 / *.sqlite. outdir defaults to db-dump/; pass it when one compose
+# project owns several services that would otherwise share an output dir (see
+# media-stack). Discovers rather than hardcodes: filenames vary by image version.
+#
+# The dump MIRRORS each database's path under <path> instead of flattening it to a
+# basename. Flattening had two failure modes, both silent:
+#   - Two databases with the same name under one service collapsed into one file,
+#     last writer wins. bazarr (config/bazarr.db + config/db/bazarr.db) and babybuddy
+#     (config/db.sqlite3 + config/data/db.sqlite3) were each losing one database.
+#   - A nested database restored to the wrong directory, because the restore side had
+#     no path left to reconstruct. jellyfin (config/data/data/) and jellyseerr
+#     (config/db/) both came back where nothing would read them.
+# The restic exclude-file re-includes services/*/db-dump/** recursively, so the deeper
+# subdirs this now creates back up unchanged -- no exclude-file edit needed.
 dump_sqlite_tree() {
-    local root="$1" out="${2:-db-dump}" found=0 f base
+    local root="${1%/}" out="${2:-db-dump}" found=0 f rel
     mkdir -p "$out"
     while IFS= read -r -d '' f; do
-        found=1; base=$(basename "$f")
+        found=1; rel="${f#"$root"/}"
+        mkdir -p "${out}/$(dirname "$rel")"
         # .backup takes a read lock and yields a consistent copy of a database that is
         # actively being written. A plain cp does not.
-        if ! sqlite3 "$f" ".backup '${out}/${base}.tmp'" 2>/dev/null; then
+        if ! sqlite3 "$f" ".backup '${out}/${rel}.tmp'" 2>/dev/null; then
             echo "dump_sqlite_tree: .backup failed for $f" >&2
-            rm -f "${out}/${base}.tmp"; return 1; fi
-        if [[ "$(sqlite3 "${out}/${base}.tmp" 'PRAGMA integrity_check;' 2>/dev/null)" != "ok" ]]; then
+            rm -f "${out}/${rel}.tmp"; return 1; fi
+        if [[ "$(sqlite3 "${out}/${rel}.tmp" 'PRAGMA integrity_check;' 2>/dev/null)" != "ok" ]]; then
             echo "dump_sqlite_tree: $f dumped but fails integrity_check" >&2
-            rm -f "${out}/${base}.tmp"; return 1; fi
-        mv -f "${out}/${base}.tmp" "${out}/${base}"
+            rm -f "${out}/${rel}.tmp"; return 1; fi
+        mv -f "${out}/${rel}.tmp" "${out}/${rel}"
     done < <(find "$root" -type f \( -name '*.db' -o -name '*.sqlite3' -o -name '*.sqlite' \) -print0)
     # An empty result means the paths moved under us — the service's data is then
     # silently absent from the snapshot. Fail rather than succeed emptily.
