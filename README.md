@@ -90,6 +90,7 @@ homelab/
 │   ├── minecraft-server/               # Minecraft Java Edition server
 │   ├── pairdrop/                       # Local file sharing
 │   ├── paperless-ngx/                  # Document management system
+│   ├── qui/                            # One web UI for both qBittorrent instances
 │   ├── stirling-pdf/                   # PDF manipulation tools
 │   ├── uptime-kuma/                    # Uptime monitoring
 │   ├── vaultwarden/                    # Password manager (Bitwarden server)
@@ -120,6 +121,7 @@ homelab/
 | ↳ Prowlarr | Indexer management | 9696 | ✅ Production |
 | ↳ Bazarr | Subtitle management | 6767 | ✅ Production |
 | ↳ qBittorrent | Download client (shares the gluetun netns) | 8080 | ✅ Production |
+| [qui](services/qui/) | One web UI for both qBittorrent instances | 7476 | ✅ Production |
 | [Your Spotify](services/your-spotify/) | Spotify listening statistics | - | ✅ Production |
 
 ### 📄 Documents

@@ -1,0 +1,41 @@
+# qui: one web UI for every qBittorrent instance in this homelab.
+#
+# Deliberately NOT in gluetun's network namespace, unlike the qBittorrent
+# instances it manages. Two reasons:
+#   * a management UI that dies with the VPN killswitch is unavailable exactly
+#     when something has gone wrong and you want to look at it.
+#   * a container sharing gluetun's namespace cannot publish its own port -- the
+#     mapping would have to move into services/gluetun/docker-compose.yml and be
+#     kept in sync there. Nothing about qui needs the tunnel.
+#
+# So qui uses ordinary bridge networking and reaches both clients over the host,
+# the same way services/caddy does. Instances are added in qui's own web UI, not
+# here: it stores them (URL + credentials) in /config/qui.db. See README.md.
+services:
+  qui:
+    image: ghcr.io/autobrr/qui:latest
+    container_name: qui
+    environment:
+      # PUID/PGID must be set together or the entrypoint refuses to start, and
+      # must not be combined with `user:` -- the entrypoint needs root to chown
+      # /config before dropping privileges.
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+      - TZ=${TZ}
+      # Upstream default is DEBUG, which is noisy for a container logging to
+      # stdout with no rotation.
+      - QUI__LOG_LEVEL=${QUI_LOG_LEVEL:-INFO}
+    volumes:
+      # Holds config.toml, the sqlite qui.db (accounts + instance credentials +
+      # UI preferences), and the tracker icon cache. Persist it or you re-create
+      # the account and re-add both instances on every recreate.
+      - './config:/config'
+    ports:
+      - '${PORT:-7476}:7476'
+    labels:
+      - homepage.group=Download
+      - homepage.name=qui
+      - homepage.icon=qui
+      - homepage.href=${URL}
+    restart: unless-stopped
