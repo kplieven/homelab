@@ -49,6 +49,11 @@ mam.{$DOMAIN} {
     import cloudflare
 }
 
+qui.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:7476
+    import cloudflare
+}
+
 immich.{$DOMAIN}, photos.{$DOMAIN} {
     reverse_proxy {$SERVER_IP}:2283
     import cloudflare
@@ -80,14 +85,7 @@ vaultwarden.{$DOMAIN}, passwords.{$DOMAIN} {
 }
 
 steel-design.{$DOMAIN} {
-    root * /srv/steel-design-crm-frontend
-    file_server
-    try_files {path} /index.html
-    import cloudflare
-}
-
-steel-design-api.{$DOMAIN} {
-    reverse_proxy {$SERVER_IP}:4725
+    reverse_proxy {$SERVER_IP}:1212
     import cloudflare
 }
 
@@ -188,4 +186,28 @@ uptime.{$DOMAIN}, status.{$DOMAIN} {
 git.{$DOMAIN} {
     reverse_proxy {$SERVER_IP}:3005
     import cloudflare
+}
+
+self.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:2345
+    import cloudflare
+}
+
+investments.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:1001
+    import cloudflare
+}
+
+budkin.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:1235
+    import cloudflare
+}
+
+hdd.{$DOMAIN} {
+    root * /config/hdd-spin
+    file_server
+    import cloudflare
+    basic_auth {
+        {$HDD_AUTH_USER} {$HDD_AUTH_HASH}
+    }
 }
