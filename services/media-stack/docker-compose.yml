@@ -171,3 +171,29 @@ services:
       - homepage.widget.url=${JELLYSEERR_URL}
       - homepage.widget.key=${JELLYSEERR_API_KEY}
     restart: unless-stopped
+  suggestarr:
+    image: ghcr.io/giuseppe99barchetta/suggestarr:latest
+    container_name: suggestarr
+    # Watches Jellyfin history and asks Seerr for similar titles. Everything it
+    # needs (Jellyfin URL + key, Seerr URL + key, TMDb key, the cron schedule)
+    # is configured in its own web UI and persisted to config_files/ -- there is
+    # no env-var path for any of it. See README.md.
+    environment:
+      - TZ=${TZ}
+      - LOG_LEVEL=${SUGGESTARR_LOG_LEVEL:-info}
+      # The app binds this port INSIDE the container, so both sides of the port
+      # mapping below have to follow it -- this is not a normal host-side-only
+      # PORT variable.
+      - SUGGESTARR_PORT=${SUGGESTARR_PORT:-5000}
+    volumes:
+      # Holds config.yaml and requests.db (the sqlite record of what has already
+      # been requested). Lose it and SuggestArr re-requests your whole history.
+      - './suggestarr/config_files:/app/config/config_files'
+    ports:
+      - '${SUGGESTARR_PORT:-5000}:${SUGGESTARR_PORT:-5000}'
+    labels:
+      - homepage.group=Media
+      - homepage.name=SuggestArr
+      - homepage.icon=suggest-arr
+      - homepage.href=${SUGGESTARR_URL}
+    restart: unless-stopped

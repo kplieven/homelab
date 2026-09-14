@@ -10,3 +10,8 @@ for svc in sonarr radarr prowlarr bazarr jellyfin; do
     restore_sqlite_tree "./$svc/config" "db-dump/$svc"
 done
 
+# Counterpart to backup.sh's explicit suggestarr dump: its database lives in
+# config_files/, not config/. `if` rather than `&&` for the same reason as there.
+if [[ -d db-dump/suggestarr ]]; then
+    restore_sqlite_tree ./suggestarr/config_files db-dump/suggestarr
+fi

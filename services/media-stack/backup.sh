@@ -18,3 +18,15 @@ for svc in sonarr radarr prowlarr bazarr jellyfin jellyseerr; do
     dump_sqlite_tree "./$svc/config" "db-dump/$svc"
 done
 
+# SuggestArr keeps requests.db in config_files/, not config/, so it cannot join the
+# loop above. It matches the **/*.db exclude like every other live sqlite file, and
+# media-stack already has a backup.sh, so assert-pairing.sh would NOT catch its
+# absence -- the same blind spot that lost jellyseerr's database. Dump it explicitly.
+# requests.db is the record of what has already been requested; without it a restored
+# SuggestArr re-requests the entire watch history on its next run.
+# An `if`, not `[[ ... ]] && cmd`: that form returns 1 when the dir is absent, and as
+# the last line of a `set -e` script that becomes the script's exit status -- a missing
+# optional service would fail the whole backup.
+if [[ -d ./suggestarr/config_files ]]; then
+    dump_sqlite_tree ./suggestarr/config_files db-dump/suggestarr
+fi

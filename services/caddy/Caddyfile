@@ -82,6 +82,11 @@ seerr.{$DOMAIN}, requests.{$DOMAIN} {
     import cloudflare
 }
 
+suggestarr.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:5000
+    import cloudflare
+}
+
 vaultwarden.{$DOMAIN}, passwords.{$DOMAIN} {
     reverse_proxy {$SERVER_IP}:81
     import cloudflare

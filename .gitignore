@@ -71,3 +71,8 @@ services/books-stack/import-new-books.sh.bak-*
 # Jellyfin runtime state: the config/ dir is covered by the generic rule, the
 # pre-migration database dumps are not.
 services/media-stack/jellyfin/db-backup-*/
+
+# SuggestArr runtime state. The generic **/config/ rule does not reach
+# config_files/, and config.yaml holds the Jellyfin, Seerr and TMDb API keys plus
+# the password of the non-admin Seerr user it files requests as.
+services/media-stack/suggestarr/config_files/
