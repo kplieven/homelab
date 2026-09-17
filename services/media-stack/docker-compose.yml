@@ -92,6 +92,12 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=${TZ}
+      - DOCKER_MODS=linuxserver/mods:jellyfin-opencl-intel
+      # Docker bind-mounts the /dev/dri nodes over regular-file placeholders
+      # (it cannot mknod inside an unprivileged LXC), so the image's default
+      # `find ... -type c` device scan matches nothing and never adds abc to
+      # the render/video groups. Glob the nodes explicitly instead.
+      - 'ATTACHED_DEVICES_PERMS=/dev/dri/*'
     ports:
       - '8096:8096'
     volumes:
