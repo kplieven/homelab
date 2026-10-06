@@ -7,6 +7,7 @@ services:
       - '${BROWSER_ROOT_PATH}:/srv/media'
       - '${TORRENT_ROOT}:/srv/torrents'
       - '${FILES_ROOT}/to-be-imported:/srv/to-be-imported'
+      - '${PHOTOS_ROOT}/immich_library:/srv/photos'
       - './filebrowser.db:/database/filebrowser.db'
       - './settings.json:/config/settings.json'
     environment:
