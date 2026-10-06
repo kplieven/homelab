@@ -1,0 +1,58 @@
+services:
+  romm:
+    image: rommapp/romm:latest
+    container_name: romm
+    restart: unless-stopped
+    ports:
+      - '${PORT:-8742}:8080'
+    environment:
+      - TZ=${TZ}
+      - DB_HOST=romm-db
+      - DB_NAME=romm
+      - DB_USER=romm-user
+      - DB_PASSWD=${DB_PASSWD}
+      - ROMM_AUTH_SECRET_KEY=${ROMM_AUTH_SECRET_KEY}
+      # Metadata providers: https://docs.romm.app/latest/getting-started/metadata-providers/
+      - IGDB_CLIENT_ID=${IGDB_CLIENT_ID}
+      - IGDB_CLIENT_SECRET=${IGDB_CLIENT_SECRET}
+      - RETROACHIEVEMENTS_API_KEY=${RETROACHIEVEMENTS_API_KEY}
+      - STEAMGRIDDB_API_KEY=${STEAMGRIDDB_API_KEY}
+      - HASHEOUS_API_ENABLED=true
+    volumes:
+      - './resources:/romm/resources' # Covers, screenshots etc. fetched from metadata providers
+      - './redis-data:/redis-data' # Cache for background tasks
+      - './assets:/romm/assets' # Uploaded saves, states, screenshots
+      - './config:/romm/config' # config.yml
+      # Folder layout: https://docs.romm.app/latest/getting-started/folder-structure/
+      - '${ROMM_LIBRARY:?set ROMM_LIBRARY in .env}:/romm/library'
+    depends_on:
+      romm-db:
+        condition: service_healthy
+        restart: true
+    labels:
+      - homepage.group=Games
+      - homepage.name=RomM
+      - homepage.icon=romm
+      - homepage.href=${URL}
+      - homepage.widget.type=romm
+      - homepage.widget.url=${URL}
+
+  romm-db:
+    # Pinned to the LTS line: :latest would jump major versions on a routine pull.
+    image: mariadb:11.4
+    container_name: romm-db
+    restart: unless-stopped
+    environment:
+      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+      - MARIADB_DATABASE=romm
+      - MARIADB_USER=romm-user
+      - MARIADB_PASSWORD=${DB_PASSWD}
+    volumes:
+      - './database:/var/lib/mysql'
+    healthcheck:
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
+      start_period: 30s
+      start_interval: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 5

@@ -7,6 +7,7 @@ HOMELAB_DIR/services/mealie/database
 HOMELAB_DIR/services/komodo/db
 HOMELAB_DIR/services/paperless-ngx/database
 HOMELAB_DIR/services/your-spotify/database
+HOMELAB_DIR/services/romm/database
 
 # Live SQLite files — replaced by .backup output in db-dump/. -wal/-shm are meaningless
 # without their db and harmful to restore beside a dump.
@@ -28,6 +29,7 @@ HOMELAB_DIR/services/linkwarden/meili_data
 HOMELAB_DIR/services/many-notes/typesense
 HOMELAB_DIR/services/*/cache
 HOMELAB_DIR/services/media-stack/*/metadata
+HOMELAB_DIR/services/romm/redis-data
 # Jellyfin nests cache and metadata under config/, so the services/*/cache and
 # media-stack/*/metadata patterns above sit too shallow to reach them. Named
 # explicitly for the same reason as the DB dirs: no wildcard fishing.

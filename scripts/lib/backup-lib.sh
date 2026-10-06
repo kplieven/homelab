@@ -31,6 +31,28 @@ dump_postgres() {
     mv -f "db-dump/${db}.sql.tmp" "db-dump/${db}.sql"
 }
 
+# dump_mariadb <container> <db>  ->  db-dump/<db>.sql
+# Authenticates with the container's own MARIADB_USER/MARIADB_PASSWORD, so no secret
+# crosses the host command line. MYSQL_PWD rather than -p keeps it out of `ps` inside
+# the container too. --single-transaction gives a consistent InnoDB snapshot without
+# locking out the app.
+dump_mariadb() {
+    local container="$1" db="$2"
+    _dump_dir
+    # Same `||` reasoning as dump_postgres: the redirect creates the .tmp first.
+    docker compose exec -T "$container" sh -c \
+        'MYSQL_PWD="$MARIADB_PASSWORD" exec mariadb-dump -u"$MARIADB_USER" --single-transaction "$1"' \
+        _ "$db" > "db-dump/${db}.sql.tmp" || {
+        echo "dump_mariadb: mariadb-dump failed for ${db}" >&2
+        rm -f "db-dump/${db}.sql.tmp"; return 1; }
+    # mariadb-dump's last line is "-- Dump completed on ..."; without it the dump is
+    # truncated and a replay would stop halfway.
+    tail -n1 "db-dump/${db}.sql.tmp" | grep -q '^-- Dump completed' || {
+        echo "dump_mariadb: ${db} dump is truncated" >&2
+        rm -f "db-dump/${db}.sql.tmp"; return 1; }
+    mv -f "db-dump/${db}.sql.tmp" "db-dump/${db}.sql"
+}
+
 # dump_mongo <container> [db]  ->  db-dump/mongo.archive
 dump_mongo() {
     local container="$1" db="${2:-}"

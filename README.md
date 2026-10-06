@@ -92,6 +92,7 @@ homelab/
 │   ├── pairdrop/                       # Local file sharing
 │   ├── paperless-ngx/                  # Document management system
 │   ├── qui/                            # One web UI for both qBittorrent instances
+│   ├── romm/                           # Retro game library & in-browser emulation
 │   ├── stirling-pdf/                   # PDF manipulation tools
 │   ├── uptime-kuma/                    # Uptime monitoring
 │   ├── vaultwarden/                    # Password manager (Bitwarden server)
@@ -174,6 +175,7 @@ homelab/
 | Service | Purpose | Port | Status |
 |---------|---------|------|--------|
 | [Minecraft](services/minecraft-server/) | Minecraft Java Edition server | 25565 | ✅ Production |
+| [RomM](services/romm/) | Retro game library & in-browser emulation | 8742 | ✅ Production |
 
 ### �📸 Photos
 | Service | Purpose | Port | Status |
@@ -429,6 +431,7 @@ docker compose -f services/SERVICE_NAME/docker-compose.yml logs -f
 - [Minecraft Server Setup](services/minecraft-server/README.md)
 - [PairDrop Setup](services/pairdrop/README.md)
 - [Paperless-NGX Documentation](services/paperless-ngx/README.md)
+- [RomM Setup](services/romm/README.md)
 - [Stirling PDF Setup](services/stirling-pdf/README.md)
 - [Uptime Kuma Setup](services/uptime-kuma/README.md)
 - [Vaultwarden Setup Guide](services/vaultwarden/README.md)

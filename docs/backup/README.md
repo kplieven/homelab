@@ -729,6 +729,7 @@ The full set — build one pair per row, and **verify the container/DB names wit
 | komodo | `set -a; . ./.env; set +a` then `dump_postgres postgres "$KOMODO_DB_USERNAME" postgres --exclude-table-data='cron.job_run_details'` | db literally `postgres`; the exclusion is not optional — see [5.4](#54-when-things-go-wrong) |
 | paperless-ngx | `document_exporter ../export --delete` then `dump_postgres db paperless paperless` | see below |
 | your-spotify | `dump_mongo mongo` | no auth |
+| romm | `dump_mariadb romm-db romm` | MariaDB; credentials come from the container's own env. Restore with only `romm-db` up |
 | vaultwarden | special — `/vaultwarden backup`, see below | |
 | home-assistant | `dump_sqlite_tree ./config` | |
 | uptime-kuma | `dump_sqlite_tree ./data` | |
@@ -1037,6 +1038,7 @@ HOMELAB_DIR/services/mealie/database
 HOMELAB_DIR/services/komodo/db
 HOMELAB_DIR/services/paperless-ngx/database
 HOMELAB_DIR/services/your-spotify/database
+HOMELAB_DIR/services/romm/database
 
 # Live SQLite files — replaced by .backup output in db-dump/. -wal/-shm are meaningless
 # without their db and harmful to restore beside a dump.
@@ -1057,6 +1059,7 @@ HOMELAB_DIR/services/immich/model-cache
 HOMELAB_DIR/services/linkwarden/meili_data
 HOMELAB_DIR/services/*/cache
 HOMELAB_DIR/services/media-stack/*/metadata
+HOMELAB_DIR/services/romm/redis-data
 
 # Noise.
 **/logs/

@@ -11,6 +11,18 @@ restore_postgres() {
         psql -U "$user" -d "$db" --set ON_ERROR_STOP=on < "db-dump/${db}.sql"
 }
 
+# restore_mariadb <container> <db>
+# The dump carries DROP TABLE IF EXISTS for every table, so this replaces the schema
+# the app may already have migrated. The mariadb client aborts on the first error and
+# exits non-zero (no --force), the equivalent of psql's ON_ERROR_STOP.
+restore_mariadb() {
+    local container="$1" db="$2"
+    [[ -f "db-dump/${db}.sql" ]] || { echo "restore_mariadb: no db-dump/${db}.sql" >&2; return 1; }
+    docker compose exec -T "$container" sh -c \
+        'MYSQL_PWD="$MARIADB_PASSWORD" exec mariadb -u"$MARIADB_USER" "$1"' \
+        _ "$db" < "db-dump/${db}.sql"
+}
+
 # restore_mongo <container>
 restore_mongo() {
     local container="$1"

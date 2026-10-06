@@ -76,3 +76,9 @@ services/media-stack/jellyfin/db-backup-*/
 # config_files/, and config.yaml holds the Jellyfin, Seerr and TMDb API keys plus
 # the password of the non-admin Seerr user it files requests as.
 services/media-stack/suggestarr/config_files/
+
+# RomM runtime state. config/, library/ and database/ are covered by the generic
+# rules; these are not. assets/ holds uploaded saves and states.
+services/romm/assets/
+services/romm/resources/
+services/romm/redis-data/

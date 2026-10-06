@@ -132,6 +132,11 @@ mealie.{$DOMAIN} {
     import cloudflare
 }
 
+romm.{$DOMAIN} {
+    reverse_proxy {$SERVER_IP}:8742
+    import cloudflare
+}
+
 docker.{$DOMAIN}, komodo.{$DOMAIN} {
     reverse_proxy {$SERVER_IP}:9120
     import cloudflare
