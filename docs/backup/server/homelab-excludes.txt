@@ -36,6 +36,7 @@ HOMELAB_DIR/services/romm/redis-data
 HOMELAB_DIR/services/media-stack/jellyfin/config/cache
 HOMELAB_DIR/services/media-stack/jellyfin/config/.nv
 HOMELAB_DIR/services/media-stack/jellyfin/config/data/metadata
+HOMELAB_DIR/services/media-stack/jellyfin/config/data/data/subtitles
 
 # Noise.
 **/logs/
